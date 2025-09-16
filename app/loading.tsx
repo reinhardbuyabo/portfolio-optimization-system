@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: {
-        template: `%s | Portfolio Optimization System`,
+        template: `%s | Prostore`,
         default: APP_NAME,
     },
     description: APP_DESCRIPTION,
@@ -35,4 +35,3 @@ export default function RootLayout({
         </html>
     );
 }
-
