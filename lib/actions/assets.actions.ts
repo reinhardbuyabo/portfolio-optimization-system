@@ -1,23 +1,26 @@
 "use server";
 
 import { prisma } from "@/db/prisma";
+import { convertToPlainObject } from "@/lib/utils";
 
-// Fetch all assets
-export async function getAssets(limitData: number = 1) {
-  return prisma.asset.findMany({
+export async function getAssets() {
+  const assets = await prisma.asset.findMany({
     include: {
-      data: {
-        orderBy: { date: "desc" },
-        take: limitData, // 1 for latest price, more for mini-charts
-      },
+      data: true, // MarketData
+      allocs: true, // PortfolioAllocation
     },
   });
+  return convertToPlainObject(assets);
 }
 
-// Fetch one asset
 export async function getAssetByTicker(ticker: string) {
-  return prisma.asset.findUnique({
+  const asset = await prisma.asset.findUnique({
     where: { ticker },
-    include: { data: true },
+    include: {
+      data: true,
+      allocs: true,
+    },
   });
+  return convertToPlainObject(asset);
 }
+
