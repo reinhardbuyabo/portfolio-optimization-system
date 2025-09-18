@@ -1,4 +1,4 @@
-import { Role, RiskTolerance, PortfolioStatus } from "../lib/generated/prisma";
+import { Role, RiskTolerance, PortfolioStatus } from "@prisma/client";
 import { hashSync } from "bcrypt-ts-edge";
 
 const HASH_ROUNDS = 10;
