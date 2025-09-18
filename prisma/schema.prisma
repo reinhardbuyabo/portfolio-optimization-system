@@ -27,18 +27,21 @@ enum PortfolioStatus {
 }
 
 model User {
-    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name      String   @default("NO_NAME")
-    email     String   @unique @db.VarChar(255)
-    password  String
-    role      Role     @default(INVESTOR) // Add role attribute
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @default("NO_NAME")
+  email     String   @unique @db.VarChar(255)
+  password  String
+  role      Role     @default(INVESTOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    investorProfile InvestorProfile?
-    portfolios      Portfolio[]
-    accounts        Account[]
-    sessions        Session[]
+  resetToken       String?   @db.VarChar(255)
+  resetTokenExpiry DateTime?
+
+  investorProfile InvestorProfile?
+  portfolios      Portfolio[]
+  accounts        Account[]
+  sessions        Session[]
 }
 
 model Account {

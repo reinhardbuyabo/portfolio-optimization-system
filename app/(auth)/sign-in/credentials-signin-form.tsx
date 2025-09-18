@@ -70,6 +70,12 @@ const CredentialsSignInForm = () => {
             Sign Up
           </Link>
         </div>
+        <div className="text-sm text-center text-muted-foreground mt-2">
+            Forgot your password?{" "}
+          <Link href="/reset-password" target="_self" className="link">
+            Reset Password
+          </Link>
+        </div>
       </div>
     </form>
   );
