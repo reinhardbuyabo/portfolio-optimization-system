@@ -1,155 +1,155 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 enum Role {
-  ADMIN
-  PORTFOLIO_MANAGER
-  INVESTOR
-  ANALYST
+    ADMIN
+    PORTFOLIO_MANAGER
+    INVESTOR
+    ANALYST
 }
 
 enum RiskTolerance {
-  LOW
-  MEDIUM
-  HIGH
+    LOW
+    MEDIUM
+    HIGH
 }
 
 enum PortfolioStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
+    DRAFT
+    ACTIVE
+    ARCHIVED
 }
 
 model User {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String
-  email     String    @unique
-  password  String
-  role      Role      @default(INVESTOR)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name      String   @default("NO_NAME")
+    email     String   @unique @db.VarChar(255)
+    password  String
+    role      Role     @default(INVESTOR) // Add role attribute
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  investorProfile InvestorProfile?
-  portfolios      Portfolio[]
-  accounts        Account[]
-  sessions        Session[]
+    investorProfile InvestorProfile?
+    portfolios      Portfolio[]
+    accounts        Account[]
+    sessions        Session[]
 }
 
 model Account {
-  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId             String   @db.Uuid
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
-  oauth_token_secret String?
-  oauth_token        String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+    id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId             String   @db.Uuid
+    type               String
+    provider           String
+    providerAccountId  String
+    refresh_token      String?  @db.Text
+    access_token       String?  @db.Text
+    expires_at         Int?
+    token_type         String?
+    scope              String?
+    id_token           String?  @db.Text
+    session_state      String?
+    oauth_token_secret String?
+    oauth_token        String?
+    createdAt          DateTime @default(now())
+    updatedAt          DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+    user User @relation(fields: [userId], references: [id])
 
-  @@unique([provider, providerAccountId])
+    @@unique([provider, providerAccountId])
 }
 
 model Session {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sessionToken String   @unique
-  userId       String   @db.Uuid
-  expires      DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionToken String   @unique
+    userId       String   @db.Uuid
+    expires      DateTime
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+    user User @relation(fields: [userId], references: [id])
 }
 
 model InvestorProfile {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String        @unique @db.Uuid
-  budget        Float
-  riskTolerance RiskTolerance
-  constraints   Json?
-  preferences   Json?
+    id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId        String        @unique @db.Uuid
+    budget        Float
+    riskTolerance RiskTolerance
+    constraints   Json?
+    preferences   Json?
 
-  user User @relation(fields: [userId], references: [id])
+    user User @relation(fields: [userId], references: [id])
 }
 
 model Asset {
-  id     String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ticker String                @unique
-  name   String
-  sector String?
-  data   MarketData[]
-  allocs PortfolioAllocation[]
+    id     String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    ticker String                @unique
+    name   String
+    sector String?
+    data   MarketData[]
+    allocs PortfolioAllocation[]
 }
 
 model MarketData {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  assetId        String   @db.Uuid
-  date           DateTime
-  open           Float
-  high           Float
-  low            Float
-  close          Float
-  volume         Int
-  sentimentScore Float?
+    id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    assetId        String   @db.Uuid
+    date           DateTime
+    open           Float
+    high           Float
+    low            Float
+    close          Float
+    volume         Int
+    sentimentScore Float?
 
-  asset Asset @relation(fields: [assetId], references: [id])
+    asset Asset @relation(fields: [assetId], references: [id])
 }
 
 model Portfolio {
-  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String          @db.Uuid
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  status    PortfolioStatus @default(DRAFT)
+    id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId    String          @db.Uuid
+    createdAt DateTime        @default(now())
+    updatedAt DateTime        @updatedAt
+    status    PortfolioStatus @default(DRAFT)
 
-  user        User                  @relation(fields: [userId], references: [id])
-  allocations PortfolioAllocation[]
-  results     OptimizationResult[]
-  simulations Simulation[]
+    user        User                  @relation(fields: [userId], references: [id])
+    allocations PortfolioAllocation[]
+    results     OptimizationResult[]
+    simulations Simulation[]
 }
 
 model PortfolioAllocation {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  portfolioId String   @db.Uuid
-  assetId     String   @db.Uuid
-  weight      Float
+    id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId String @db.Uuid
+    assetId     String @db.Uuid
+    weight      Float
 
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id])
-  asset     Asset     @relation(fields: [assetId], references: [id])
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+    asset     Asset     @relation(fields: [assetId], references: [id])
 }
 
 model OptimizationResult {
-  id                 String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  portfolioId        String @db.Uuid
-  expectedReturn     Float
-  expectedVolatility Float
-  sharpeRatio        Float
-  sortinoRatio       Float
-  maxDrawdown        Float
+    id                 String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId        String @db.Uuid
+    expectedReturn     Float
+    expectedVolatility Float
+    sharpeRatio        Float
+    sortinoRatio       Float
+    maxDrawdown        Float
 
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id])
 }
 
 model Simulation {
-  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  portfolioId        String   @db.Uuid
-  startDate          DateTime
-  endDate            DateTime
-  performanceMetrics Json?
+    id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId        String   @db.Uuid
+    startDate          DateTime
+    endDate            DateTime
+    performanceMetrics Json?
 
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id])
 }
