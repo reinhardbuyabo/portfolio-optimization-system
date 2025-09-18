@@ -1,18 +1,23 @@
-import { getUsers } from "@/lib/actions/users.actions";
+import { auth } from "@/auth";
 import { getAssets } from "@/lib/actions/assets.actions";
 import { getPortfoliosByUser } from "@/lib/actions/portfolios.actions";
 
 export default async function HomePage() {
-  const users = await getUsers();
-  const investor = users.find((u) => u.role === "INVESTOR");
+  const session = await auth();
 
-  // Explicitly type portfolios to avoid implicit 'any[]'
-  let portfolios: Awaited<ReturnType<typeof getPortfoliosByUser>> = [];
-
-  if (investor) {
-    portfolios = await getPortfoliosByUser(investor.id);
+  if (!session?.user) {
+    return (
+      <main className="p-6">
+        <h1 className="text-2xl font-bold">Not signed in</h1>
+        <p className="text-muted-foreground">
+          Please <a href="/sign-in" className="underline">sign in</a> to continue.
+        </p>
+      </main>
+    );
   }
 
+  const investor = session.user;
+  const portfolios = await getPortfoliosByUser(investor.id);
   const assets = await getAssets();
 
   return (
@@ -20,20 +25,14 @@ export default async function HomePage() {
       <h1 className="text-3xl font-bold">Investor Dashboard</h1>
 
       {/* Investor Info */}
-      {investor && (
-        <section>
-          <h2 className="text-xl font-semibold mb-3">
-            Welcome, {investor.name}
-          </h2>
-          <p className="text-muted-foreground">
-            Email: {investor.email}
-            <br />
-            Budget: {investor.investorProfile?.budget ?? "N/A"}
-            <br />
-            Risk Tolerance: {investor.investorProfile?.riskTolerance ?? "N/A"}
-          </p>
-        </section>
-      )}
+      <section>
+        <h2 className="text-xl font-semibold mb-3">Welcome, {investor.name}</h2>
+        <p className="text-muted-foreground">
+          Email: {investor.email}
+          <br />
+          Role: {investor.role}
+        </p>
+      </section>
 
       {/* Portfolios */}
       <section>
@@ -109,3 +108,4 @@ export default async function HomePage() {
     </main>
   );
 }
+
