@@ -8,8 +8,9 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { formatError } from "../utils";
 import { hashSync } from "bcrypt-ts-edge";
 import { Resend } from "resend";
-import crypto from "crypto";
+import crypto, { randomInt } from "crypto";
 import { redirect } from "next/navigation";
+import { twJoin } from "tailwind-merge";
 
 // Fetch all users with related info
 export async function getUsers() {
@@ -72,9 +73,11 @@ export async function signInWithCredentials(
   formData: FormData,
 ) {
   try {
+    // Get user input and validate
     const user = signInFormSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
+      twoFactorCode: formData.get("twoFactorCode"),
     });
 
     // Debugging log to check user credentials
@@ -94,7 +97,8 @@ export async function signInWithCredentials(
       throw error;
     }
 
-    return { success: false, message: "Invalid email or password" };
+    console.log("Sign-in error:", error);
+    return { success: false, message: formatError(error) };
   }
 }
 
@@ -120,10 +124,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       },
     });
 
-    await signIn("credentials", {
-      email: user.email,
-      password: plainPassword,
-    });
+    redirect("/sign-in");
 
     return { success: true, message: "User registered successfully" };
   } catch (error) {
@@ -255,5 +256,85 @@ export async function updatePassword(token: string, formData: FormData) {
       success: false,
       message: "Something went wrong. Please try again.",
     };
+  }
+}
+
+export async function verifyTwoFactorCode(
+  userId: string,
+  code: string,
+  providedPassword: string,
+) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      email: true,
+      twoFactorCode: true,
+      twoFactorExpiry: true,
+    },
+  });
+
+  if (!user || !user.twoFactorCode || !user.twoFactorExpiry) {
+    throw new Error("No 2FA code found.");
+  }
+
+  const now = new Date();
+  const isValid = user.twoFactorCode === code && user.twoFactorExpiry >= now;
+
+  if (!isValid) {
+    throw new Error("Invalid or expired 2FA code.");
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      twoFactorCode: null,
+      twoFactorExpiry: null,
+    },
+  });
+
+  await signIn("credentials", {
+    email: user.email,
+    password: providedPassword,
+    redirect: false,
+  });
+
+  redirect("/dashboard");
+}
+
+export async function send2FACode(email: string) {
+  try {
+    // 1. Check if the user exists
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    // 2. Generate a 6-digit code
+    const code = randomInt(100000, 999999).toString();
+
+    // 3. Save code + expiry (5 minutes from now)
+    await prisma.user.update({
+      where: { email },
+      data: {
+        twoFactorCode: code,
+        twoFactorExpiry: new Date(Date.now() + 5 * 60 * 1000),
+      },
+    });
+
+    // 4. Send via Resend
+    await resend.emails.send({
+      from: "onboarding@resend.dev", // make sure this domain is verified in Resend
+      to: email,
+      subject: "Your Two-Factor Authentication Code",
+      text: `Your login code is: ${code}. It expires in 5 minutes.`,
+    });
+
+    return { success: true, message: "2FA code sent" };
+  } catch (error) {
+    console.error("send2FACode error:", error);
+    return { success: false, message: "Failed to send code" };
   }
 }
