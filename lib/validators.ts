@@ -4,6 +4,9 @@ import { z } from "zod";
 export const signInFormSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  twoFactorCode: z
+    .string()
+    .length(6, "Input a valid 2FA code"),
 });
 
 // Schema for signing up a user
