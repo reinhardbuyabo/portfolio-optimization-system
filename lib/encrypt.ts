@@ -18,3 +18,9 @@ export const hash = async (plainPassword: string): Promise<string> => {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 };
+
+// Secure 6-digit 2FA code generator
+export function generate2FACode(): string {
+  const random = crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
+  return random.toString().padStart(6, "0");
+}

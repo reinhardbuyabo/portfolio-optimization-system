@@ -28,13 +28,14 @@ const ModeToggle = () => {
                     variant="ghost"
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
-                    {theme === "system" ? (
-                        <SunMoon />
-                    ) : theme === "dark" ? (
-                        <MoonIcon />
-                    ) : (
-                        <SunIcon />
+                    {mounted && ( // only render icons if mounted
+                        <>
+                            {theme === "light" && <SunIcon className="h-5 w-5" />}
+                            {theme === "dark" && <MoonIcon className="h-5 w-5" />}
+                            {theme === "system" && <SunMoon className="h-5 w-5" />}
+                        </>
                     )}
+                    {!mounted && <SunMoon className="h-5 w-5" />} {/* fallback icon */}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>

@@ -38,6 +38,11 @@ model User {
   resetToken       String?   @db.VarChar(255)
   resetTokenExpiry DateTime?
 
+  // 2FA fields
+  twoFactorCode       String?   @db.VarChar(10)
+  twoFactorExpiry     DateTime?
+  twoFactorVerifiedAt DateTime?
+
   investorProfile InvestorProfile?
   portfolios      Portfolio[]
   accounts        Account[]
