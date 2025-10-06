@@ -2,11 +2,11 @@
 
 import { prisma } from "@/db/prisma";
 import { Role } from "@prisma/client";
-import { signInFormSchema, signUpFormSchema } from "../validators";
+import { signInFormSchema, signUpFormSchema, verify2FASchema } from "../validators";
 import { signIn, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { formatError } from "../utils";
-import { hashSync } from "bcrypt-ts-edge";
+import { hashSync, compareSync } from "bcrypt-ts-edge";
 import { Resend } from "resend";
 import crypto, { randomInt } from "crypto";
 import { redirect } from "next/navigation";
@@ -67,30 +67,68 @@ export async function createUser(data: {
   });
 }
 
-// Sign in the user with credentials
+// Step 1: Validate credentials and send 2FA code
 export async function signInWithCredentials(
   prevState: unknown,
   formData: FormData,
 ) {
   try {
     // Get user input and validate
-    const user = signInFormSchema.parse({
+    const credentials = signInFormSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
-      twoFactorCode: formData.get("twoFactorCode"),
     });
 
-    // Debugging log to check user credentials
-    console.log("Signing in with:", user);
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email: credentials.email },
+    });
 
-    const result = await signIn("credentials", user);
-    if (!result) {
-      return { success: false, message: "Sign in failed" };
+    if (!user || !user.password) {
+      return { success: false, message: "Invalid email or password" };
+    }
+
+    // Verify password
+    const isPasswordValid = compareSync(credentials.password, user.password);
+    if (!isPasswordValid) {
+      return { success: false, message: "Invalid email or password" };
+    }
+
+    // Generate and send 2FA code
+    const code = randomInt(100000, 999999).toString();
+    const twoFactorExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        twoFactorCode: code,
+        twoFactorExpiry,
+      },
+    });
+
+    // Send 2FA code via email
+    try {
+      await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: user.email,
+        subject: "Your Two-Factor Authentication Code",
+        html: `
+          <h2>Your Login Code</h2>
+          <p>Your verification code is: <strong>${code}</strong></p>
+          <p>This code will expire in 5 minutes.</p>
+          <p>If you didn't request this code, please ignore this email.</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to send 2FA email:", emailError);
+      return { success: false, message: "Failed to send verification code" };
     }
 
     return {
       success: true,
-      message: "Signed in successfully",
+      message: "Verification code sent to your email",
+      requiresTwoFactor: true,
+      email: user.email,
     };
   } catch (error) {
     if (isRedirectError(error)) {
@@ -259,51 +297,81 @@ export async function updatePassword(token: string, formData: FormData) {
   }
 }
 
+// Step 2: Verify 2FA code and complete sign-in
 export async function verifyTwoFactorCode(
-  userId: string,
-  code: string,
-  providedPassword: string,
+  prevState: unknown,
+  formData: FormData,
 ) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      email: true,
-      twoFactorCode: true,
-      twoFactorExpiry: true,
-    },
-  });
+  try {
+    // Validate input
+    const data = verify2FASchema.parse({
+      email: formData.get("email"),
+      code: formData.get("code"),
+    });
 
-  if (!user || !user.twoFactorCode || !user.twoFactorExpiry) {
-    throw new Error("No 2FA code found.");
+    // Find user and check 2FA code
+    const user = await prisma.user.findUnique({
+      where: { email: data.email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        twoFactorCode: true,
+        twoFactorExpiry: true,
+      },
+    });
+
+    if (!user || !user.twoFactorCode || !user.twoFactorExpiry) {
+      return { success: false, message: "No verification code found. Please sign in again." };
+    }
+
+    // Check if code is expired
+    const now = new Date();
+    if (user.twoFactorExpiry < now) {
+      return { success: false, message: "Verification code has expired. Please sign in again." };
+    }
+
+    // Verify the code
+    if (user.twoFactorCode !== data.code) {
+      return { success: false, message: "Invalid verification code." };
+    }
+
+    // Mark 2FA as verified and clear the code
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        twoFactorCode: null,
+        twoFactorExpiry: null,
+        twoFactorVerifiedAt: new Date(),
+      },
+    });
+
+    // Complete sign-in with NextAuth using special 2FA bypass
+    // Pass the user ID as a special marker that 2FA is verified
+    await signIn("credentials", {
+      email: user.email,
+      password: `2FA_VERIFIED:${user.id}`,
+      redirect: false,
+    });
+
+    return {
+      success: true,
+      message: "Successfully verified. Redirecting...",
+    };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    console.error("2FA verification error:", error);
+    return { success: false, message: formatError(error) };
   }
-
-  const now = new Date();
-  const isValid = user.twoFactorCode === code && user.twoFactorExpiry >= now;
-
-  if (!isValid) {
-    throw new Error("Invalid or expired 2FA code.");
-  }
-
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      twoFactorCode: null,
-      twoFactorExpiry: null,
-    },
-  });
-
-  await signIn("credentials", {
-    email: user.email,
-    password: providedPassword,
-    redirect: false,
-  });
-
-  redirect("/dashboard");
 }
 
-export async function send2FACode(email: string) {
+// Resend 2FA code (for users who didn't receive it)
+export async function resend2FACode(email: string) {
   try {
-    // 1. Check if the user exists
+    // Check if the user exists
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -312,10 +380,10 @@ export async function send2FACode(email: string) {
       return { success: false, message: "User not found" };
     }
 
-    // 2. Generate a 6-digit code
+    // Generate a new 6-digit code
     const code = randomInt(100000, 999999).toString();
 
-    // 3. Save code + expiry (5 minutes from now)
+    // Save code + expiry (5 minutes from now)
     await prisma.user.update({
       where: { email },
       data: {
@@ -324,17 +392,27 @@ export async function send2FACode(email: string) {
       },
     });
 
-    // 4. Send via Resend
-    await resend.emails.send({
-      from: "onboarding@resend.dev", // make sure this domain is verified in Resend
-      to: email,
-      subject: "Your Two-Factor Authentication Code",
-      text: `Your login code is: ${code}. It expires in 5 minutes.`,
-    });
+    // Send via Resend
+    try {
+      await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: email,
+        subject: "Your Two-Factor Authentication Code",
+        html: `
+          <h2>Your Login Code</h2>
+          <p>Your verification code is: <strong>${code}</strong></p>
+          <p>This code will expire in 5 minutes.</p>
+          <p>If you didn't request this code, please ignore this email.</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to resend 2FA email:", emailError);
+      return { success: false, message: "Failed to send verification code" };
+    }
 
-    return { success: true, message: "2FA code sent" };
+    return { success: true, message: "Verification code resent to your email" };
   } catch (error) {
-    console.error("send2FACode error:", error);
-    return { success: false, message: "Failed to send code" };
+    console.error("resend2FACode error:", error);
+    return { success: false, message: "Failed to resend code" };
   }
 }
