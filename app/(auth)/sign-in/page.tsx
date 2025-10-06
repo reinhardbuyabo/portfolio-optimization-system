@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
 import CredentialsSignInForm from "./credentials-signin-form";
+import GoogleSignInButton from "./google-signin-button";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
@@ -47,6 +48,22 @@ const SignInPage = async (props: {
             Sign in to your account
           </CardDescription>
           <CardContent className="space-y-4">
+            {/* Google OAuth Button */}
+            <GoogleSignInButton />
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Credentials Form */}
             <CredentialsSignInForm />
           </CardContent>
         </CardHeader>

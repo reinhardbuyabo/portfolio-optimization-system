@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./db/prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { compareSync } from "bcrypt-ts-edge";
 import type { NextAuthConfig, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
@@ -13,11 +14,22 @@ export const config = {
         error: "/sign-in",
     },
     session: {
-        strategy: "jwt",
+        strategy: "database",
         maxAge: 30 * 24 * 60 * 60,
     },
     adapter: PrismaAdapter(prisma),
     providers: [
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            authorization: {
+                params: {
+                    prompt: "consent",
+                    access_type: "offline",
+                    response_type: "code"
+                }
+            }
+        }),
         CredentialsProvider({
             credentials: {
                 email: { type: "email" },
@@ -73,42 +85,36 @@ export const config = {
         }),
     ],
     callbacks: {
-        async session({ session, token }: { session: Session; token: JWT }) {
-            // Set the user ID and role from the token
-            session.user.id = token.id as string;
-            session.user.role = token.role as Role; // Role from your Prisma schema
-            session.user.name = token.name as string;
+        async signIn({ user, account, profile }) {
+            // Handle OAuth sign-in
+            if (account?.provider === "google") {
+                // Check if user exists or create new user
+                const existingUser = await prisma.user.findUnique({
+                    where: { email: user.email! }
+                });
 
-            console.log(token);
+                if (existingUser) {
+                    // User exists, account will be linked automatically by PrismaAdapter
+                    return true;
+                } else {
+                    // New user will be created automatically by PrismaAdapter
+                    // Set default role for OAuth users
+                    return true;
+                }
+            }
+
+            // Allow credentials provider sign-in
+            return true;
+        },
+        async session({ session, user }: { session: Session; user: any }) {
+            // Add user info to session (database strategy uses user object, not token)
+            if (user) {
+                session.user.id = user.id;
+                session.user.role = user.role;
+                session.user.name = user.name;
+            }
 
             return session;
-        },
-        async jwt({ token, user, trigger, session }) {
-            // assign user fields to token
-            if (user) {
-                token.role = user.role;
-
-                // if user has no name use the part of the email before the @ as name
-                if (user.name === "NO_NAME") {
-                    token.name = token.email?.split("@")[0];
-
-                    // update the database to reflect the token name
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { name: token.name },
-                    });
-                } else {
-                    token.name = user.name;
-                }
-
-
-            }
-            if (trigger === "update" && session?.user?.name) {
-                // Copy updated name into token
-                token.name = session.user.name;
-            }
-
-            return token;
         },
     },
 } satisfies NextAuthConfig; // ensures that the object structure is compatible with the type
