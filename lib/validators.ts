@@ -1,12 +1,15 @@
 import { z } from "zod";
 
-// Schema for signing users in
+// Schema for initial sign in (credentials only)
 export const signInFormSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  twoFactorCode: z
-    .string()
-    .length(6, "Input a valid 2FA code"),
+});
+
+// Schema for 2FA code verification
+export const verify2FASchema = z.object({
+  email: z.string().email("Invalid email address"),
+  code: z.string().length(6, "Code must be exactly 6 digits").regex(/^\d+$/, "Code must contain only digits"),
 });
 
 // Schema for signing up a user

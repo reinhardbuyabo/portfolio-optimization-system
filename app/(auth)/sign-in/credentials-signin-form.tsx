@@ -5,14 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInDefaultValues } from "@/lib/constants";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
-import {
-    signInWithCredentials,
-    send2FACode,
-} from "@/lib/actions/users.actions";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { signInWithCredentials } from "@/lib/actions/users.actions";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const CredentialsSignInForm = () => {
     const [data, action] = useActionState(signInWithCredentials, {
@@ -22,22 +18,14 @@ const CredentialsSignInForm = () => {
 
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get("callbackUrl") || "/";
+    const router = useRouter();
 
-    const [sendingCode, setSendingCode] = useState(false);
-    const [codeSent, setCodeSent] = useState(false);
-
-    const handleSendCode = async (formData: FormData) => {
-        setSendingCode(true);
-        const email = formData.get("email") as string;
-        try {
-            const res = await send2FACode(email);
-            if (res.success) {
-                setCodeSent(true);
-            }
-        } finally {
-            setSendingCode(false);
+    // Redirect to 2FA verification page on successful credential validation
+    useEffect(() => {
+        if (data.success && data.requiresTwoFactor && data.email) {
+            router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
         }
-    };
+    }, [data, router]);
 
     const SignInButton = () => {
         const { pending } = useFormStatus();
@@ -80,49 +68,20 @@ const CredentialsSignInForm = () => {
                     />
                 </div>
 
-                {/* Two-Factor Code */}
-                <div className="space-y-1">
-                    <Label htmlFor="twoFactorCode">Two-Factor Code</Label>
-                    <div className="flex gap-2">
-                        <Input
-                            type="text"
-                            id="twoFactorCode"
-                            name="twoFactorCode"
-                            inputMode="numeric"
-                            pattern="\d*"
-                            placeholder="Enter 6-digit code"
-                            autoComplete="one-time-code"
-                            className="flex-1"
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            disabled={sendingCode}
-                            onClick={async () => {
-                                const formEl = document.querySelector(
-                                    "form",
-                                ) as HTMLFormElement;
-                                const formData = new FormData(formEl);
-                                await handleSendCode(formData);
-                            }}
-                        >
-                            {sendingCode ? "Sending..." : codeSent ? "Resend" : "Send"}
-                        </Button>
-                    </div>
-                    {codeSent && (
-                        <p className="text-xs text-muted-foreground">
-                            Code sent to your email. Check your inbox.
-                        </p>
-                    )}
-                </div>
-
                 {/* Submit */}
                 <div>
                     <SignInButton />
                 </div>
 
+                {/* Success message (redirecting to 2FA) */}
+                {data && data.success && data.requiresTwoFactor && (
+                    <div className="text-center text-green-600 dark:text-green-400">
+                        {data.message}
+                    </div>
+                )}
+
                 {/* Error display */}
-                {data && !data.success && (
+                {data && !data.success && data.message && (
                     <div className="text-center text-destructive">{data.message}</div>
                 )}
 
