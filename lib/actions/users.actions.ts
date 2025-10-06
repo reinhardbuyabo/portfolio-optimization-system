@@ -154,7 +154,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
 
     user.password = hashSync(user.password, 10);
 
-    await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name: user.name,
         email: user.email,
@@ -162,7 +162,15 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       },
     });
 
-    redirect("/sign-in");
+    // Sign in the user immediately after registration
+    await signIn("credentials", {
+      email: newUser.email,
+      password: plainPassword,
+      redirect: false,
+    });
+
+    // Redirect to mandatory passkey setup
+    redirect("/setup-passkey");
 
     return { success: true, message: "User registered successfully" };
   } catch (error) {
@@ -318,6 +326,7 @@ export async function verifyTwoFactorCode(
         password: true,
         twoFactorCode: true,
         twoFactorExpiry: true,
+        authenticators: true,
       },
     });
 
@@ -346,13 +355,21 @@ export async function verifyTwoFactorCode(
       },
     });
 
-    // Complete sign-in with NextAuth using special 2FA bypass
-    // Pass the user ID as a special marker that 2FA is verified
+    // Sign in the user first
     await signIn("credentials", {
       email: user.email,
       password: `2FA_VERIFIED:${user.id}`,
       redirect: false,
     });
+
+    // Check if user has a passkey
+    if (!user.authenticators || user.authenticators.length === 0) {
+      // No passkey, redirect to setup
+      redirect("/setup-passkey");
+    } else {
+      // Has passkey, redirect to verification
+      redirect("/verify-passkey");
+    }
 
     return {
       success: true,

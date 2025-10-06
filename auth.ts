@@ -86,25 +86,24 @@ export const config = {
     ],
     callbacks: {
         async signIn({ user, account, profile }) {
-            // Handle OAuth sign-in
-            if (account?.provider === "google") {
-                // Check if user exists or create new user
-                const existingUser = await prisma.user.findUnique({
-                    where: { email: user.email! }
-                });
+            // Always allow sign-in, redirects are handled in redirect callback
+            return true;
+        },
+        async redirect({ url, baseUrl }) {
+            // After successful OAuth sign-in, check if user has passkey
+            // This runs after the user is authenticated
 
-                if (existingUser) {
-                    // User exists, account will be linked automatically by PrismaAdapter
-                    return true;
-                } else {
-                    // New user will be created automatically by PrismaAdapter
-                    // Set default role for OAuth users
-                    return true;
-                }
+            // If the URL is the callback URL (after OAuth), check passkey status
+            if (url.includes('/api/auth/callback/google')) {
+                // We can't access session here directly, so we'll use a different approach
+                // Return to default and let middleware/pages handle it
+                return baseUrl;
             }
 
-            // Allow credentials provider sign-in
-            return true;
+            // For other redirects, use default behavior
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            else if (new URL(url).origin === baseUrl) return url;
+            return baseUrl;
         },
         async session({ session, user }: { session: Session; user: any }) {
             // Add user info to session (database strategy uses user object, not token)
