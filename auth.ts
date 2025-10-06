@@ -33,23 +33,40 @@ export const config = {
                     },
                 });
 
-                // Check if user exists and if the password matches
-                if (user && user.password) {
-                    const isMatch = compareSync(
-                        credentials.password as string,
-                        user.password,
-                    );
+                if (!user || !user.password) return null;
 
-                    // If password is correct, return the user
-                    if (isMatch) {
-                        return {
-                            id: user.id,
-                            name: user.name,
-                            email: user.email,
-                            role: user.role,
-                        };
+                // Check if this is a 2FA verification bypass
+                const password = credentials.password as string;
+                if (password.startsWith('2FA_VERIFIED:')) {
+                    const userId = password.replace('2FA_VERIFIED:', '');
+                    // Verify the user ID matches and 2FA was recently verified
+                    if (user.id === userId && user.twoFactorVerifiedAt) {
+                        const verifiedRecently = new Date().getTime() - user.twoFactorVerifiedAt.getTime() < 60000; // Within 1 minute
+                        if (verifiedRecently) {
+                            return {
+                                id: user.id,
+                                name: user.name,
+                                email: user.email,
+                                role: user.role,
+                            };
+                        }
                     }
+                    return null;
                 }
+
+                // Normal password verification
+                const isMatch = compareSync(password, user.password);
+
+                // If password is correct, return the user
+                if (isMatch) {
+                    return {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                    };
+                }
+
                 // If user doesn't exist or password doesn't match return null
                 return null;
             },
