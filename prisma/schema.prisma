@@ -27,13 +27,15 @@ enum PortfolioStatus {
 }
 
 model User {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String   @default("NO_NAME")
-  email     String   @unique @db.VarChar(255)
-  password  String
-  role      Role     @default(INVESTOR)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String    @default("NO_NAME")
+  email         String    @unique @db.VarChar(255)
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(INVESTOR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   resetToken       String?   @db.VarChar(255)
   resetTokenExpiry DateTime?

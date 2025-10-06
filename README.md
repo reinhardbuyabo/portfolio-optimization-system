@@ -5,10 +5,11 @@ A comprehensive portfolio optimization and management system built with Next.js 
 ## Features
 
 ### Authentication & Security
+- **Google OAuth** for quick and secure sign-in
 - **Two-Factor Authentication (2FA)** via email with time-limited codes
 - **Password Reset** with secure token-based flow
 - **Role-Based Access Control** (Admin, Portfolio Manager, Investor, Analyst)
-- **NextAuth v5** with JWT strategy and session management
+- **NextAuth v5** with database session strategy and session management
 - **Secure password hashing** with bcrypt
 
 ### Portfolio Management
@@ -64,6 +65,8 @@ A comprehensive portfolio optimization and management system built with Next.js 
    - `AUTH_SECRET`: Generate with `openssl rand -base64 32`
    - `RESEND_API_KEY`: Your Resend API key from https://resend.com
    - `NEXT_PUBLIC_APP_URL`: Your application URL (default: http://localhost:3000)
+   - `GOOGLE_CLIENT_ID`: Your Google OAuth client ID (optional, for Google sign-in)
+   - `GOOGLE_CLIENT_SECRET`: Your Google OAuth client secret (optional, for Google sign-in)
 
 4. **Set up the database**
    ```bash
@@ -162,7 +165,14 @@ portfolio-optimization-system/
 3. Account is created in database
 4. User is redirected to sign-in page
 
-### Sign In with 2FA
+### Sign In with Google OAuth
+1. User clicks "Continue with Google" button
+2. Redirected to Google authentication
+3. User authorizes the application
+4. Google account is linked to user profile (or new user is created)
+5. Session is created and user is redirected to dashboard
+
+### Sign In with Credentials + 2FA
 1. User enters email and password
 2. Credentials are validated against database
 3. 6-digit verification code is generated and sent via email
@@ -200,6 +210,8 @@ Required variables (see `.env.example`):
 | `AUTH_SECRET` | NextAuth secret key | Generate with `openssl rand -base64 32` |
 | `RESEND_API_KEY` | Resend API key for emails | `re_...` |
 | `NEXT_PUBLIC_APP_URL` | Application base URL | `http://localhost:3000` |
+| `GOOGLE_CLIENT_ID` | (Optional) Google OAuth client ID | From Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | (Optional) Google OAuth client secret | From Google Cloud Console |
 | `TEST_EMAIL` | (Optional) Email for integration tests | `test@example.com` |
 
 ## Security Best Practices
