@@ -2,6 +2,7 @@
 
 import { prisma } from "@/db/prisma";
 import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -18,7 +19,6 @@ import type {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
 } from "@simplewebauthn/types";
-import { signIn } from "@/auth";
 
 // WebAuthn Configuration
 const rpName = process.env.NEXT_PUBLIC_RP_NAME || "Portfolio Optimization System";
@@ -170,7 +170,11 @@ export async function verifyPasskeyRegistration(response: RegistrationResponseJS
  */
 export async function generatePasskeyAuthenticationOptions(email?: string) {
   try {
-    let userAuthenticators: any[] = [];
+    type AuthenticatorData = {
+      credentialID: string;
+      transports: string | null;
+    };
+    let userAuthenticators: AuthenticatorData[] = [];
 
     if (email) {
       // Get user's authenticators if email provided
@@ -249,14 +253,17 @@ export async function verifyPasskeyAuthentication(
 
     const user = authenticator.user;
 
-    // Verify the challenge matches
-    if (user.webauthnChallenge !== challenge) {
-      return { success: false, message: "Invalid challenge" };
-    }
+    // For discoverable credentials (no email provided), we rely on the challenge passed from the client
+    // Otherwise verify the challenge matches what's stored in the database
+    if (user.webauthnChallenge) {
+      if (user.webauthnChallenge !== challenge) {
+        return { success: false, message: "Invalid challenge" };
+      }
 
-    // Check if challenge expired
-    if (user.challengeExpiry && user.challengeExpiry < new Date()) {
-      return { success: false, message: "Challenge expired" };
+      // Check if challenge expired
+      if (user.challengeExpiry && user.challengeExpiry < new Date()) {
+        return { success: false, message: "Challenge expired" };
+      }
     }
 
     const opts: VerifyAuthenticationResponseOpts = {
@@ -286,7 +293,9 @@ export async function verifyPasskeyAuthentication(
       },
     });
 
-    // Clear challenge
+    // Clear challenge and mark passkey as verified
+    // User is already signed in from 2FA code verification
+    // This updates the timestamp to allow access to protected routes
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -296,12 +305,8 @@ export async function verifyPasskeyAuthentication(
       },
     });
 
-    // Sign in the user using the 2FA bypass mechanism
-    await signIn("credentials", {
-      email: user.email,
-      password: `2FA_VERIFIED:${user.id}`,
-      redirect: false,
-    });
+    // Revalidate the homepage to reflect the updated verification status
+    revalidatePath("/");
 
     return {
       success: true,

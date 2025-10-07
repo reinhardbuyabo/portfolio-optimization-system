@@ -60,7 +60,7 @@ const VerifyPasskeyPage = async () => {
           <div className="bg-muted p-4 rounded-lg space-y-2">
             <h3 className="font-semibold">Second Factor Required</h3>
             <p className="text-sm text-muted-foreground">
-              You've successfully authenticated with your first factor. Now verify your passkey to complete sign-in.
+              You&apos;ve successfully authenticated with your first factor. Now verify your passkey to complete sign-in.
             </p>
           </div>
 

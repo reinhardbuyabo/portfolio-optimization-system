@@ -14,7 +14,7 @@ export const config = {
         error: "/sign-in",
     },
     session: {
-        strategy: "database",
+        strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60,
     },
     adapter: PrismaAdapter(prisma),
@@ -105,12 +105,23 @@ export const config = {
             else if (new URL(url).origin === baseUrl) return url;
             return baseUrl;
         },
-        async session({ session, user }: { session: Session; user: any }) {
-            // Add user info to session (database strategy uses user object, not token)
+        async jwt({ token, user }: { token: JWT; user?: any }) {
+            // Initial sign in - add user data to token
             if (user) {
-                session.user.id = user.id;
-                session.user.role = user.role;
-                session.user.name = user.name;
+                token.id = user.id;
+                token.role = user.role;
+                token.email = user.email;
+                token.name = user.name || user.email?.split('@')[0] || 'User';
+            }
+            return token;
+        },
+        async session({ session, token }: { session: Session; token: JWT }) {
+            // Add user info to session from JWT token
+            if (token) {
+                session.user.id = token.id as string;
+                session.user.role = token.role as Role;
+                session.user.email = token.email as string;
+                session.user.name = token.name as string;
             }
 
             return session;

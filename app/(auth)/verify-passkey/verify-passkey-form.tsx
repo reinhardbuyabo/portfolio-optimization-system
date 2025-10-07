@@ -55,17 +55,19 @@ const VerifyPasskeyForm = () => {
       setSuccess(true);
       setTimeout(() => {
         router.push("/");
+        // Force a full reload to ensure database changes are reflected
         router.refresh();
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Passkey verification error:", err);
 
-      if (err.name === "NotAllowedError") {
+      const error = err as Error & { name?: string };
+      if (error.name === "NotAllowedError") {
         setError("Passkey verification was cancelled. Please try again.");
-      } else if (err.name === "InvalidStateError") {
+      } else if (error.name === "InvalidStateError") {
         setError("This passkey is not recognized. Please try a different device or authenticator.");
       } else {
-        setError(err.message || "Failed to verify passkey. Please try again.");
+        setError(error.message || "Failed to verify passkey. Please try again.");
       }
       setLoading(false);
     }
@@ -156,7 +158,7 @@ const VerifyPasskeyForm = () => {
       )}
 
       <div className="text-xs text-center text-muted-foreground">
-        You'll be prompted to use your fingerprint, face recognition, or device PIN
+        You&apos;ll be prompted to use your fingerprint, face recognition, or device PIN
       </div>
     </div>
   );
