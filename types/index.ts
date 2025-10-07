@@ -1,12 +1,11 @@
 import type { User, Portfolio, Asset, InvestorProfile } from "@prisma/client";
-import type { SignInFormValues } from "@/lib/validators";
 
 /**
  * App-wide type definitions
  */
 
 // ---------- Auth ----------
-export type { SignInFormValues };
+// Auth types are inferred from Zod schemas in @/lib/validators
 
 // Example: user session type (extend later when adding auth)
 export interface SessionUser {

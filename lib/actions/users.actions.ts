@@ -2,7 +2,11 @@
 
 import { prisma } from "@/db/prisma";
 import { Role } from "@prisma/client";
-import { signInFormSchema, signUpFormSchema, verify2FASchema } from "../validators";
+import {
+  signInFormSchema,
+  signUpFormSchema,
+  verify2FASchema,
+} from "../validators";
 import { signIn, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { formatError } from "../utils";
@@ -331,13 +335,19 @@ export async function verifyTwoFactorCode(
     });
 
     if (!user || !user.twoFactorCode || !user.twoFactorExpiry) {
-      return { success: false, message: "No verification code found. Please sign in again." };
+      return {
+        success: false,
+        message: "No verification code found. Please sign in again.",
+      };
     }
 
     // Check if code is expired
     const now = new Date();
     if (user.twoFactorExpiry < now) {
-      return { success: false, message: "Verification code has expired. Please sign in again." };
+      return {
+        success: false,
+        message: "Verification code has expired. Please sign in again.",
+      };
     }
 
     // Verify the code
@@ -355,26 +365,16 @@ export async function verifyTwoFactorCode(
       },
     });
 
-    // Sign in the user first
+    // Determine where to redirect based on passkey status
+    const hasPasskey = user.authenticators && user.authenticators.length > 0;
+    const redirectTo = hasPasskey ? "/verify-passkey" : "/setup-passkey";
+
+    // Sign in the user with 2FA bypass and redirect
     await signIn("credentials", {
       email: user.email,
       password: `2FA_VERIFIED:${user.id}`,
-      redirect: false,
+      redirectTo,
     });
-
-    // Check if user has a passkey
-    if (!user.authenticators || user.authenticators.length === 0) {
-      // No passkey, redirect to setup
-      redirect("/setup-passkey");
-    } else {
-      // Has passkey, redirect to verification
-      redirect("/verify-passkey");
-    }
-
-    return {
-      success: true,
-      message: "Successfully verified. Redirecting...",
-    };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;

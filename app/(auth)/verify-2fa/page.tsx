@@ -50,7 +50,7 @@ const Verify2FAPage = async (props: {
           </Link>
           <CardTitle className="text-center">Verify Your Identity</CardTitle>
           <CardDescription className="text-center">
-            We've sent a 6-digit verification code to {email}
+            We&apos;ve sent a 6-digit verification code to {email}
           </CardDescription>
           <CardContent className="space-y-4">
             <Verify2FAForm email={email} />

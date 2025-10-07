@@ -53,15 +53,16 @@ const PasskeySignInButton = () => {
       // Success! Redirect to dashboard
       router.push("/");
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Passkey sign-in error:", err);
 
-      if (err.name === "NotAllowedError") {
+      const error = err as Error & { name?: string };
+      if (error.name === "NotAllowedError") {
         setError("Authentication was cancelled");
-      } else if (err.name === "InvalidStateError") {
+      } else if (error.name === "InvalidStateError") {
         setError("No passkey found. Please sign in with another method or register a passkey.");
       } else {
-        setError(err.message || "Failed to sign in with passkey");
+        setError(error.message || "Failed to sign in with passkey");
       }
       setLoading(false);
     }
