@@ -28,16 +28,23 @@ npx prisma db seed          # Seed database with sample data
 ## Architecture
 
 ### Authentication System
-- **NextAuth v5** with JWT strategy (30-day sessions)
+- **NextAuth v5** with database session strategy (30-day sessions)
+- **Google OAuth** for quick sign-in (optional, requires credentials)
 - Credentials provider with bcrypt password hashing
 - Two-factor authentication via email (5-minute expiry codes)
 - Password reset flow with time-limited tokens (1-hour expiry)
 - Role-based access: ADMIN, PORTFOLIO_MANAGER, INVESTOR, ANALYST
 - Auth config: `auth.ts` (main setup), `app/api/auth/[...nextauth]/route.ts` (NextAuth handlers)
 - User actions: `lib/actions/users.actions.ts` (sign-in, sign-up, 2FA, password reset)
+- Setup guide: See `GOOGLE_OAUTH_SETUP.md` for Google OAuth configuration
 
 ### Database Schema (Prisma)
 - **Users**: Authentication, roles, 2FA fields, password reset tokens
+  - `password` is optional for OAuth users
+  - `emailVerified` tracks OAuth email verification
+  - `image` stores OAuth profile pictures
+- **Account**: OAuth provider accounts (Google, etc.) linked to users
+- **Session**: Database-stored sessions for NextAuth
 - **InvestorProfile**: Budget, risk tolerance (LOW/MEDIUM/HIGH), constraints/preferences (JSON)
 - **Portfolio**: Draft/Active/Archived status, belongs to user
 - **Asset**: Ticker-based assets with market data and allocations
@@ -73,7 +80,13 @@ DATABASE_URL="postgresql://..."
 NEXT_PUBLIC_APP_URL="http://localhost:3000"  # For password reset links
 RESEND_API_KEY="re_..."
 AUTH_SECRET="..."  # Generate with: openssl rand -base64 32
+
+# Optional (for Google OAuth)
+GOOGLE_CLIENT_ID="..."  # From Google Cloud Console
+GOOGLE_CLIENT_SECRET="..."  # From Google Cloud Console
 ```
+
+See `GOOGLE_OAUTH_SETUP.md` for detailed setup instructions.
 
 ## Important Patterns
 

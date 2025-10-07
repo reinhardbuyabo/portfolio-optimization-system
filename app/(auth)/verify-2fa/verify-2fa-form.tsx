@@ -24,12 +24,12 @@ const Verify2FAForm = ({ email }: { email: string }) => {
 
   // Redirect on successful verification
   useEffect(() => {
-    if (data.success) {
+    if (data?.success) {
       setTimeout(() => {
         router.push("/");
       }, 1000);
     }
-  }, [data.success, router]);
+  }, [data?.success, router]);
 
   const handleResendCode = async () => {
     setResending(true);

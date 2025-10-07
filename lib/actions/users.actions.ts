@@ -2,7 +2,11 @@
 
 import { prisma } from "@/db/prisma";
 import { Role } from "@prisma/client";
-import { signInFormSchema, signUpFormSchema, verify2FASchema } from "../validators";
+import {
+  signInFormSchema,
+  signUpFormSchema,
+  verify2FASchema,
+} from "../validators";
 import { signIn, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { formatError } from "../utils";
@@ -154,7 +158,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
 
     user.password = hashSync(user.password, 10);
 
-    await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name: user.name,
         email: user.email,
@@ -162,7 +166,15 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       },
     });
 
-    redirect("/sign-in");
+    // Sign in the user immediately after registration
+    await signIn("credentials", {
+      email: newUser.email,
+      password: plainPassword,
+      redirect: false,
+    });
+
+    // Redirect to mandatory passkey setup
+    redirect("/setup-passkey");
 
     return { success: true, message: "User registered successfully" };
   } catch (error) {
@@ -318,17 +330,24 @@ export async function verifyTwoFactorCode(
         password: true,
         twoFactorCode: true,
         twoFactorExpiry: true,
+        authenticators: true,
       },
     });
 
     if (!user || !user.twoFactorCode || !user.twoFactorExpiry) {
-      return { success: false, message: "No verification code found. Please sign in again." };
+      return {
+        success: false,
+        message: "No verification code found. Please sign in again.",
+      };
     }
 
     // Check if code is expired
     const now = new Date();
     if (user.twoFactorExpiry < now) {
-      return { success: false, message: "Verification code has expired. Please sign in again." };
+      return {
+        success: false,
+        message: "Verification code has expired. Please sign in again.",
+      };
     }
 
     // Verify the code
@@ -346,18 +365,16 @@ export async function verifyTwoFactorCode(
       },
     });
 
-    // Complete sign-in with NextAuth using special 2FA bypass
-    // Pass the user ID as a special marker that 2FA is verified
+    // Determine where to redirect based on passkey status
+    const hasPasskey = user.authenticators && user.authenticators.length > 0;
+    const redirectTo = hasPasskey ? "/verify-passkey" : "/setup-passkey";
+
+    // Sign in the user with 2FA bypass and redirect
     await signIn("credentials", {
       email: user.email,
       password: `2FA_VERIFIED:${user.id}`,
-      redirect: false,
+      redirectTo,
     });
-
-    return {
-      success: true,
-      message: "Successfully verified. Redirecting...",
-    };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;

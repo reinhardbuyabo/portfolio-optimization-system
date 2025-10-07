@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import { getAssets } from "@/lib/actions/assets.actions";
 import { getPortfoliosByUser } from "@/lib/actions/portfolios.actions";
+import { prisma } from "@/db/prisma";
+import { redirect } from "next/navigation";
 
 export default async function HomePage() {
   const session = await auth();
@@ -14,6 +16,31 @@ export default async function HomePage() {
         </p>
       </main>
     );
+  }
+
+  // Check if user has a passkey - enforce mandatory 2FA
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+    include: { authenticators: true },
+  });
+
+  if (user) {
+    const hasPasskey = user.authenticators && user.authenticators.length > 0;
+
+    if (!hasPasskey) {
+      // User doesn't have a passkey, redirect to setup
+      redirect("/setup-passkey");
+    } else {
+      // User has a passkey - check if they've verified it recently
+      // If twoFactorVerifiedAt is not set or is older than 2 minutes, require verification
+      const needsVerification = !user.twoFactorVerifiedAt ||
+        (new Date().getTime() - user.twoFactorVerifiedAt.getTime() > 2 * 60 * 1000);
+
+      if (needsVerification) {
+        // Redirect to passkey verification
+        redirect("/verify-passkey");
+      }
+    }
   }
 
   const investor = session.user;
