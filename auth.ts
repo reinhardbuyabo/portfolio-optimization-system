@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./db/prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { compareSync } from "bcrypt-ts-edge";
 import type { NextAuthConfig, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
@@ -18,6 +19,17 @@ export const config = {
     },
     adapter: PrismaAdapter(prisma),
     providers: [
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            authorization: {
+                params: {
+                    prompt: "consent",
+                    access_type: "offline",
+                    response_type: "code"
+                }
+            }
+        }),
         CredentialsProvider({
             credentials: {
                 email: { type: "email" },
@@ -73,42 +85,46 @@ export const config = {
         }),
     ],
     callbacks: {
-        async session({ session, token }: { session: Session; token: JWT }) {
-            // Set the user ID and role from the token
-            session.user.id = token.id as string;
-            session.user.role = token.role as Role; // Role from your Prisma schema
-            session.user.name = token.name as string;
+        async signIn({ user, account, profile }) {
+            // Always allow sign-in, redirects are handled in redirect callback
+            return true;
+        },
+        async redirect({ url, baseUrl }) {
+            // After successful OAuth sign-in, check if user has passkey
+            // This runs after the user is authenticated
 
-            console.log(token);
+            // If the URL is the callback URL (after OAuth), check passkey status
+            if (url.includes('/api/auth/callback/google')) {
+                // We can't access session here directly, so we'll use a different approach
+                // Return to default and let middleware/pages handle it
+                return baseUrl;
+            }
+
+            // For other redirects, use default behavior
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            else if (new URL(url).origin === baseUrl) return url;
+            return baseUrl;
+        },
+        async jwt({ token, user }: { token: JWT; user?: any }) {
+            // Initial sign in - add user data to token
+            if (user) {
+                token.id = user.id;
+                token.role = user.role;
+                token.email = user.email;
+                token.name = user.name || user.email?.split('@')[0] || 'User';
+            }
+            return token;
+        },
+        async session({ session, token }: { session: Session; token: JWT }) {
+            // Add user info to session from JWT token
+            if (token) {
+                session.user.id = token.id as string;
+                session.user.role = token.role as Role;
+                session.user.email = token.email as string;
+                session.user.name = token.name as string;
+            }
 
             return session;
-        },
-        async jwt({ token, user, trigger, session }) {
-            // assign user fields to token
-            if (user) {
-                token.role = user.role;
-
-                // if user has no name use the part of the email before the @ as name
-                if (user.name === "NO_NAME") {
-                    token.name = token.email?.split("@")[0];
-
-                    // update the database to reflect the token name
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { name: token.name },
-                    });
-                } else {
-                    token.name = user.name;
-                }
-
-
-            }
-            if (trigger === "update" && session?.user?.name) {
-                // Copy updated name into token
-                token.name = session.user.name;
-            }
-
-            return token;
         },
     },
 } satisfies NextAuthConfig; // ensures that the object structure is compatible with the type
