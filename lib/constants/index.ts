@@ -52,7 +52,7 @@ export const CONDITION_OPTIONS = [
     { value: 'less', label: 'Less than (<)' },
 ];
 
-// TradingView Charts
+// TradingView Charts - Nairobi Stock Exchange (NSE)
 export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     colorTheme: 'dark', // dark mode
     dateRange: '12M', // last 12 months
@@ -71,35 +71,36 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     symbolActiveColor: 'rgba(15, 237, 190, 0.05)', // highlight color for active symbol
     tabs: [
         {
-            title: 'Financial',
+            title: 'Banking',
             symbols: [
-                { s: 'NYSE:JPM', d: 'JPMorgan Chase' },
-                { s: 'NYSE:WFC', d: 'Wells Fargo Co New' },
-                { s: 'NYSE:BAC', d: 'Bank Amer Corp' },
-                { s: 'NYSE:HSBC', d: 'Hsbc Hldgs Plc' },
-                { s: 'NYSE:C', d: 'Citigroup Inc' },
-                { s: 'NYSE:MA', d: 'Mastercard Incorporated' },
+                { s: 'NSE:EQTY', d: 'Equity Group Holdings' },
+                { s: 'NSE:KCB', d: 'KCB Group' },
+                { s: 'NSE:ABSA', d: 'Absa Bank Kenya' },
+                { s: 'NSE:COOP', d: 'Co-operative Bank' },
+                { s: 'NSE:SCBK', d: 'Standard Chartered Bank Kenya' },
+                { s: 'NSE:NCBA', d: 'NCBA Group' },
             ],
         },
         {
-            title: 'Technology',
+            title: 'Manufacturing',
             symbols: [
-                { s: 'NASDAQ:AAPL', d: 'Apple' },
-                { s: 'NASDAQ:GOOGL', d: 'Alphabet' },
-                { s: 'NASDAQ:MSFT', d: 'Microsoft' },
-                { s: 'NASDAQ:FB', d: 'Meta Platforms' },
-                { s: 'NYSE:ORCL', d: 'Oracle Corp' },
-                { s: 'NASDAQ:INTC', d: 'Intel Corp' },
+                { s: 'NSE:EABL', d: 'East African Breweries' },
+                { s: 'NSE:BAMB', d: 'Bamburi Cement' },
+                { s: 'NSE:BAT', d: 'British American Tobacco Kenya' },
+                { s: 'NSE:UNGA', d: 'Unga Group' },
+                { s: 'NSE:CARB', d: 'Carbacid Investments' },
+                { s: 'NSE:BOC', d: 'BOC Kenya' },
             ],
         },
         {
-            title: 'Services',
+            title: 'Telecom & Energy',
             symbols: [
-                { s: 'NASDAQ:AMZN', d: 'Amazon' },
-                { s: 'NYSE:BABA', d: 'Alibaba Group Hldg Ltd' },
-                { s: 'NYSE:T', d: 'At&t Inc' },
-                { s: 'NYSE:WMT', d: 'Walmart' },
-                { s: 'NYSE:V', d: 'Visa' },
+                { s: 'NSE:SCOM', d: 'Safaricom PLC' },
+                { s: 'NSE:KPLC', d: 'Kenya Power & Lighting' },
+                { s: 'NSE:KEGN', d: 'KenGen' },
+                { s: 'NSE:TOTL', d: 'TotalEnergies Marketing Kenya' },
+                { s: 'NSE:KUKZ', d: 'Kakuzi' },
+                { s: 'NSE:HAFR', d: 'Hafr Housing' },
             ],
         },
     ],
@@ -112,7 +113,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
 };
 
 export const HEATMAP_WIDGET_CONFIG = {
-    dataSource: 'SPX500',
+    dataSource: 'AllWorld',
     blockSize: 'market_cap_basic',
     blockColor: 'change',
     grouping: 'sector',
@@ -120,7 +121,7 @@ export const HEATMAP_WIDGET_CONFIG = {
     locale: 'en',
     symbolUrl: '',
     colorTheme: 'dark',
-    exchanges: [],
+    exchanges: ['NSE'],
     hasTopBar: false,
     isDataSetEnabled: false,
     isZoomEnabled: true,
@@ -142,7 +143,7 @@ export const TOP_STORIES_WIDGET_CONFIG = {
 };
 
 export const MARKET_DATA_WIDGET_CONFIG = {
-    title: 'Stocks',
+    title: 'NSE Stocks',
     width: '100%',
     height: 600,
     locale: 'en',
@@ -152,35 +153,41 @@ export const MARKET_DATA_WIDGET_CONFIG = {
     backgroundColor: '#0F0F0F',
     symbolsGroups: [
         {
-            name: 'Financial',
+            name: 'Banking',
             symbols: [
-                { name: 'NYSE:JPM', displayName: 'JPMorgan Chase' },
-                { name: 'NYSE:WFC', displayName: 'Wells Fargo Co New' },
-                { name: 'NYSE:BAC', displayName: 'Bank Amer Corp' },
-                { name: 'NYSE:HSBC', displayName: 'Hsbc Hldgs Plc' },
-                { name: 'NYSE:C', displayName: 'Citigroup Inc' },
-                { name: 'NYSE:MA', displayName: 'Mastercard Incorporated' },
+                { name: 'NSE:EQTY', displayName: 'Equity Group Holdings' },
+                { name: 'NSE:KCB', displayName: 'KCB Group' },
+                { name: 'NSE:ABSA', displayName: 'Absa Bank Kenya' },
+                { name: 'NSE:COOP', displayName: 'Co-operative Bank' },
+                { name: 'NSE:SCBK', displayName: 'Standard Chartered Bank' },
+                { name: 'NSE:NCBA', displayName: 'NCBA Group' },
             ],
         },
         {
-            name: 'Technology',
+            name: 'Telecommunications',
             symbols: [
-                { name: 'NASDAQ:AAPL', displayName: 'Apple' },
-                { name: 'NASDAQ:GOOGL', displayName: 'Alphabet' },
-                { name: 'NASDAQ:MSFT', displayName: 'Microsoft' },
-                { name: 'NASDAQ:FB', displayName: 'Meta Platforms' },
-                { name: 'NYSE:ORCL', displayName: 'Oracle Corp' },
-                { name: 'NASDAQ:INTC', displayName: 'Intel Corp' },
+                { name: 'NSE:SCOM', displayName: 'Safaricom PLC' },
             ],
         },
         {
-            name: 'Services',
+            name: 'Manufacturing & Energy',
             symbols: [
-                { name: 'NASDAQ:AMZN', displayName: 'Amazon' },
-                { name: 'NYSE:BABA', displayName: 'Alibaba Group Hldg Ltd' },
-                { name: 'NYSE:T', displayName: 'At&t Inc' },
-                { name: 'NYSE:WMT', displayName: 'Walmart' },
-                { name: 'NYSE:V', displayName: 'Visa' },
+                { name: 'NSE:EABL', displayName: 'East African Breweries' },
+                { name: 'NSE:BAMB', displayName: 'Bamburi Cement' },
+                { name: 'NSE:BAT', displayName: 'British American Tobacco' },
+                { name: 'NSE:KPLC', displayName: 'Kenya Power & Lighting' },
+                { name: 'NSE:KEGN', displayName: 'KenGen' },
+                { name: 'NSE:TOTL', displayName: 'TotalEnergies Marketing' },
+            ],
+        },
+        {
+            name: 'Insurance & Investment',
+            symbols: [
+                { name: 'NSE:BRIT', displayName: 'Britam Holdings' },
+                { name: 'NSE:KUKZ', displayName: 'Kakuzi' },
+                { name: 'NSE:CIC', displayName: 'CIC Insurance Group' },
+                { name: 'NSE:JBIC', displayName: 'Jubilee Holdings' },
+                { name: 'NSE:CTUM', displayName: 'Centum Investment' },
             ],
         },
     ],
@@ -279,65 +286,51 @@ export const COMPANY_FINANCIALS_WIDGET_CONFIG = (symbol: string) => ({
 });
 
 export const POPULAR_STOCK_SYMBOLS = [
-    // Tech Giants (the big technology companies)
-    'AAPL',
-    'MSFT',
-    'GOOGL',
-    'AMZN',
-    'TSLA',
-    'META',
-    'NVDA',
-    'NFLX',
-    'ORCL',
-    'CRM',
+    // NSE Banking Sector
+    'NSE:EQTY',  // Equity Group Holdings
+    'NSE:KCB',   // KCB Group
+    'NSE:ABSA',  // Absa Bank Kenya
+    'NSE:COOP',  // Co-operative Bank
+    'NSE:SCBK',  // Standard Chartered Bank Kenya
+    'NSE:NCBA',  // NCBA Group
+    'NSE:DTBK',  // Diamond Trust Bank
+    'NSE:I&M',   // I&M Holdings
 
-    // Growing Tech Companies
-    'ADBE',
-    'INTC',
-    'AMD',
-    'PYPL',
-    'UBER',
-    'ZOOM',
-    'SPOT',
-    'SQ',
-    'SHOP',
-    'ROKU',
+    // NSE Telecommunications
+    'NSE:SCOM',  // Safaricom PLC
 
-    // Newer Tech Companies
-    'SNOW',
-    'PLTR',
-    'COIN',
-    'RBLX',
-    'DDOG',
-    'CRWD',
-    'NET',
-    'OKTA',
-    'TWLO',
-    'ZM',
+    // NSE Manufacturing & Beverages
+    'NSE:EABL',  // East African Breweries
+    'NSE:BAMB',  // Bamburi Cement
+    'NSE:BAT',   // British American Tobacco Kenya
+    'NSE:UNGA',  // Unga Group
+    'NSE:CARB',  // Carbacid Investments
+    'NSE:BOC',   // BOC Kenya
 
-    // Consumer & Delivery Apps
-    'DOCU',
-    'PTON',
-    'PINS',
-    'SNAP',
-    'LYFT',
-    'DASH',
-    'ABNB',
-    'RIVN',
-    'LCID',
-    'NIO',
+    // NSE Energy
+    'NSE:KPLC',  // Kenya Power & Lighting
+    'NSE:KEGN',  // KenGen
+    'NSE:TOTL',  // TotalEnergies Marketing Kenya
+    'NSE:KENO',  // KenolKobil
 
-    // International Companies
-    'XPEV',
-    'LI',
-    'BABA',
-    'JD',
-    'PDD',
-    'TME',
-    'BILI',
-    'DIDI',
-    'GRAB',
-    'SE',
+    // NSE Insurance
+    'NSE:BRIT',  // Britam Holdings
+    'NSE:KUKZ',  // Kakuzi
+    'NSE:CIC',   // CIC Insurance Group
+    'NSE:JBIC',  // Jubilee Holdings
+    'NSE:KNRE',  // Kenya Re
+
+    // NSE Investment & Real Estate
+    'NSE:CTUM',  // Centum Investment
+    'NSE:HAFR',  // Hafr Housing
+    'NSE:ILAM',  // I&M Holdings
+
+    // NSE Retail & Commercial
+    'NSE:ARM',   // ARM Cement
+    'NSE:ATHI',  // Athi River Mining
+    'NSE:CABL',  // East African Cables
+    'NSE:SMER',  // Sameer Africa
+    'NSE:FTGH',  // Flame Tree Group Holdings
 ];
 
 export const NO_MARKET_NEWS =
