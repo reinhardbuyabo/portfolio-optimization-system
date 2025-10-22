@@ -1,0 +1,37 @@
+{
+  "news": [
+    {
+      "headline": "CBK Strips PayU Kenya of Payment Licence",
+      "url": "https://live.mystocks.co.ke/news=5053162",
+      "source": "The Kenyan Wall Street",
+      "timestamp": "Yesterday, 10:33 pm"
+    },
+    {
+      "headline": "Auditor flags hiring of unqualified staff at CBK",
+      "url": "https://live.mystocks.co.ke/news=5053163",
+      "source": "Business Daily",
+      "timestamp": "Mon, 9:30 pm"
+    },
+    {
+      "headline": "Kenyan firms rely on own funds as credit costs stay high",
+      "url": "https://live.mystocks.co.ke/news=5049688",
+      "source": "Capitalfm.co.ke",
+      "timestamp": "Mon, 11:06 am"
+    },
+    {
+      "headline": "Central Bank faulted for taking bond fees upfront",
+      "url": "https://live.mystocks.co.ke/news=5041582",
+      "source": "Business Daily",
+      "timestamp": "Fri, 3:55 pm"
+    },
+    {
+      "headline": "East Africa Launches EAE 20 Share Index to Boost Regional Capital Market Integration",
+      "url": "https://live.mystocks.co.ke/news=5040523",
+      "source": "Nilepost News",
+      "timestamp": "Fri, 2:58 pm"
+    }
+  ],
+  "count": 5,
+  "timestamp": "2025-10-22T03:59:07.601278Z",
+  "source": "https://live.mystocks.co.ke/"
+}
