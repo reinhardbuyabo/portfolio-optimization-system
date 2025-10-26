@@ -1,164 +1,114 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import { NSEMarketOverview } from "@/components/shared/nse-market-overview";
-import { TradingViewChart } from "@/components/shared/tradingview-chart";
-import Link from "next/link";
+'use client';
 
-/**
- * Public landing page with NSE market data
- * Unauthenticated users can view market data but need to sign up for features
- */
-export default async function LandingPage() {
-  const session = await auth();
+import { useEffect, useState } from "react";
+import SyntheticMarketChart from "@/components/shared/synthetic-market-chart";
+import MarketQuotesTable from "@/components/shared/market-quotes-table";
+import StockHeatmap from "@/components/shared/stock-heatmap";
 
-  // If user is authenticated, redirect to dashboard
-  if (session?.user) {
-    redirect("/dashboard");
-  }
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import HeatmapKey from "@/components/shared/heatmap-key";
+import { Label } from "@/components/ui/label";
+
+export default function LandingPage() {
+  const [data, setData] = useState<{ time_series: any[], summary: any[] }>({ time_series: [], summary: [] });
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [marketHorizon, setMarketHorizon] = useState<string>("1M");
+
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetch(`/api/market-data?horizon=${marketHorizon}`);
+      const jsonData = await response.json();
+      setData(jsonData);
+      if (jsonData.summary.length > 0 && !selectedSymbol) {
+        setSelectedSymbol(jsonData.summary[0].symbol);
+      }
+    }
+    fetchData();
+  }, [marketHorizon]);
 
   return (
-    <main className="min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-        <div className="container mx-auto px-6 text-center">
-          <h1 className="text-5xl font-bold mb-4">
-            Portfolio Optimization System
-          </h1>
-          <p className="text-xl mb-8 text-blue-100">
-            Optimize your investment portfolio with AI-powered insights from the
-            Nairobi Securities Exchange
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/sign-up"
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition"
-            >
-              Get Started
-            </Link>
-            <Link
-              href="/sign-in"
-              className="bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition border-2 border-white"
-            >
-              Sign In
-            </Link>
+    <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col items-center space-y-10">
+        {/* News Component Placeholder */}
+        <div className="w-full max-w-6xl p-5 border-2 border-dashed rounded-lg">
+          <h2 className="text-2xl font-bold text-center">Scraped News Data Will Be Displayed Here</h2>
+        </div>
+
+        <div className="w-full max-w-6xl flex items-start justify-center md:space-x-10">
+          {/* Chart */}
+          <div className="w-full md:w-2/3" data-testid="synthetic-market-chart">
+            {data.time_series.length > 0 && <SyntheticMarketChart data={data.time_series} selectedSymbol={selectedSymbol} marketHorizon={marketHorizon} />}
+          </div>
+
+          <div className="w-full md:w-1/3 flex flex-col items-center space-y-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="px-4 py-2 border rounded-lg font-bold">
+                {selectedSymbol || "Select Symbol"}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {data.summary.map(stock => (
+                  <DropdownMenuItem key={stock.symbol} onSelect={() => setSelectedSymbol(stock.symbol)}>
+                    {stock.symbol}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <RadioGroup defaultValue="1M" onValueChange={setMarketHorizon} className="grid grid-cols-2 grid-rows-4 gap-2">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1H" id="1H" className="sr-only" />
+                <Label htmlFor="1H" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1H</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1D" id="1D" className="sr-only" />
+                <Label htmlFor="1D" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1D</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="3D" id="3D" className="sr-only" />
+                <Label htmlFor="3D" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">3D</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1W" id="1W" className="sr-only" />
+                <Label htmlFor="1W" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1W</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1M" id="1M" className="sr-only" />
+                <Label htmlFor="1M" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1M</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="3M" id="3M" className="sr-only" />
+                <Label htmlFor="3M" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">3M</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1Y" id="1Y" className="sr-only" />
+                <Label htmlFor="1Y" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1Y</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="5Y" id="5Y" className="sr-only" />
+                <Label htmlFor="5Y" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">5Y</Label>
+              </div>
+            </RadioGroup>
           </div>
         </div>
-      </section>
 
-      {/* NSE Market Overview */}
-      <section className="container mx-auto px-6 py-12">
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Nairobi Securities Exchange - Live Market Data
-        </h2>
-        <p className="text-center text-muted-foreground mb-8">
-          Track the performance of top NSE stocks in real-time
-        </p>
-        <div className="bg-card rounded-lg shadow-lg p-6">
-          <NSEMarketOverview height={450} />
-        </div>
-      </section>
-
-      {/* Featured Chart - Safaricom */}
-      <section className="bg-muted/30 py-12">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-6 text-center">
-            Featured Stock: Safaricom PLC
-          </h2>
-          <div className="bg-card rounded-lg shadow-lg p-6">
-            <TradingViewChart symbol="NSE:SCOM" height={500} />
+        <div className="w-full max-w-6xl flex items-center justify-center md:space-x-10">
+          {/* Heatmap */}
+          <div className="w-full md:w-2/3">
+            <h2 className="text-2xl font-bold text-center mb-5">Stock Heatmap</h2>
+            {data.summary.length > 0 && <StockHeatmap data={data.summary} />}
+          </div>
+          <div className="w-full md:w-1/3 flex flex-col items-center justify-center space-y-4">
+            <HeatmapKey />
           </div>
         </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="container mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold mb-12 text-center">
-          Why Choose Our Platform?
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <FeatureCard
-            icon="📊"
-            title="Portfolio Optimization"
-            description="Use advanced algorithms to optimize your portfolio allocation based on your risk tolerance and investment goals."
-          />
-          <FeatureCard
-            icon="📈"
-            title="Real-Time Market Data"
-            description="Access live market data from the Nairobi Securities Exchange to make informed investment decisions."
-          />
-          <FeatureCard
-            icon="🔒"
-            title="Secure & Private"
-            description="Your data is protected with enterprise-grade security including two-factor authentication and passkeys."
-          />
-          <FeatureCard
-            icon="🎯"
-            title="Risk Analysis"
-            description="Comprehensive risk metrics including Sharpe ratio, Sortino ratio, and maximum drawdown analysis."
-          />
-          <FeatureCard
-            icon="🤖"
-            title="AI-Powered Insights"
-            description="Leverage machine learning algorithms to discover investment opportunities and optimize returns."
-          />
-          <FeatureCard
-            icon="📱"
-            title="Mobile Friendly"
-            description="Access your portfolio and market data anywhere, anytime from any device."
-          />
+        {/* Quotes Table */}
+        <div className="w-full max-w-6xl">
+          <h2 className="text-2xl font-bold text-center mb-5">Market Quotes</h2>
+          {data.summary.length > 0 && <MarketQuotesTable data={data.summary} />}
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-4">
-            Ready to Optimize Your Portfolio?
-          </h2>
-          <p className="text-xl mb-8 text-purple-100">
-            Join thousands of investors using our platform to maximize returns
-          </p>
-          <Link
-            href="/sign-up"
-            className="bg-white text-purple-600 px-10 py-4 rounded-lg font-semibold text-lg hover:bg-purple-50 transition inline-block"
-          >
-            Create Free Account
-          </Link>
-        </div>
-      </section>
-
-      {/* Access Restricted Notice */}
-      <section className="container mx-auto px-6 py-12">
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
-          <p className="text-lg font-semibold text-yellow-900 mb-2">
-            🔒 Premium Features Require Account
-          </p>
-          <p className="text-yellow-800">
-            To access portfolio optimization, backtesting, and personalized
-            recommendations,{" "}
-            <Link href="/sign-up" className="underline font-semibold">
-              create a free account
-            </Link>
-            .
-          </p>
-        </div>
-      </section>
+      </div>
     </main>
-  );
-}
-
-interface FeatureCardProps {
-  icon: string;
-  title: string;
-  description: string;
-}
-
-function FeatureCard({ icon, title, description }: FeatureCardProps) {
-  return (
-    <div className="bg-card rounded-lg p-6 shadow-md hover:shadow-lg transition">
-      <div className="text-5xl mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground">{description}</p>
-    </div>
   );
 }
