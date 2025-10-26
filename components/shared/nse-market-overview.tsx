@@ -1,12 +1,4 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
-interface NSEMarketOverviewProps {
-  width?: string | number;
-  height?: string | number;
-  theme?: "light" | "dark";
-}
+import { TOP_STOCKS } from "@/lib/constants";
 
 /**
  * TradingView Market Overview widget showing NSE top stocks
@@ -51,14 +43,7 @@ export function NSEMarketOverview({
       tabs: [
         {
           title: "NSE Top Stocks",
-          symbols: [
-            { s: "NSE:SCOM", d: "Safaricom PLC" },
-            { s: "NSE:EQTY", d: "Equity Group Holdings" },
-            { s: "NSE:KCB", d: "KCB Group" },
-            { s: "NSE:EABL", d: "East African Breweries" },
-            { s: "NSE:ABSA", d: "Absa Bank Kenya" },
-            { s: "NSE:BAMB", d: "Bamburi Cement" },
-          ],
+          symbols: TOP_STOCKS.map(stock => ({ s: `NSE:${stock}`, d: stock })),
         },
       ],
     });
