@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import HeatmapKey from "@/components/shared/heatmap-key";
 import { Label } from "@/components/ui/label";
+import NewsDisplay from "@/components/shared/news-display";
 
 export default function LandingPage() {
   const [data, setData] = useState<{ time_series: any[], summary: any[] }>({ time_series: [], summary: [] });
@@ -17,11 +18,17 @@ export default function LandingPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(`/api/market-data?horizon=${marketHorizon}`);
-      const jsonData = await response.json();
-      setData(jsonData);
-      if (jsonData.summary.length > 0 && !selectedSymbol) {
-        setSelectedSymbol(jsonData.summary[0].symbol);
+      console.log("Fetching data for horizon:", marketHorizon);
+      try {
+        const response = await fetch(`/api/market-data?horizon=${marketHorizon}`);
+        const jsonData = await response.json();
+        console.log("Fetched data:", jsonData);
+        setData(jsonData);
+        if (jsonData.summary.length > 0 && !selectedSymbol) {
+          setSelectedSymbol(jsonData.summary[0].symbol);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     }
     fetchData();
@@ -30,10 +37,7 @@ export default function LandingPage() {
   return (
     <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center space-y-10">
-        {/* News Component Placeholder */}
-        <div className="w-full max-w-6xl p-5 border-2 border-dashed rounded-lg">
-          <h2 className="text-2xl font-bold text-center">Scraped News Data Will Be Displayed Here</h2>
-        </div>
+        <NewsDisplay />
 
         <div className="w-full max-w-6xl flex items-start justify-center md:space-x-10">
           {/* Chart */}
