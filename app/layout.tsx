@@ -24,16 +24,11 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={`${inter.className} antialiased`}>
-                <SessionProvider>
-                    <ThemeProvider
-                        attribute="class"
-                        defaultTheme="light"
-                        enableSystem
-                        disableTransitionOnChange
-                    >
-                        {children}
-                    </ThemeProvider>
-                </SessionProvider>
+                <ThemeProvider attribute="class">
+                    <SessionProvider>
+                            {children}
+                    </SessionProvider>
+                </ThemeProvider>
             </body>
         </html>
     );
