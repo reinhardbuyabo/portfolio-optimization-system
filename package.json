@@ -13,7 +13,7 @@
     "test:unit": "vitest run __tests__/lib",
     "test:components": "vitest run __tests__/components",
     "test:integration": "vitest run __tests__/integration",
-    "test:e2e": "vitest run __tests__/e2e",
+    "test:e2e": "playwright test __tests__/e2e/landing-page.e2e.test.ts",
     "test:oauth": "vitest run __tests__/components/google-signin-button.test.tsx __tests__/oauth/google-oauth-simple.test.ts",
     "test:oauth:all": "vitest run __tests__/components/google-signin-button.test.tsx __tests__/integration/google-oauth.integration.test.ts __tests__/e2e/google-oauth-auth-flow.e2e.test.ts __tests__/oauth/google-oauth-simple.test.ts",
     "test:coverage": "vitest run --coverage",
