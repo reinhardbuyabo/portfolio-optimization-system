@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import TradingViewWidget from "@/components/TradingViewWidget";
+import NSEIndices from "@/components/nse/NSEIndices";
+import NSENewsList from "@/components/nse/NSENewsList";
 import {
     MARKET_DATA_WIDGET_CONFIG,
     MARKET_OVERVIEW_WIDGET_CONFIG,
@@ -36,6 +38,16 @@ function Home() {
                     <p className="text-gray-400 text-base md:text-lg">
                         Real-time market data, analysis, and insights for NSE stocks
                     </p>
+                </div>
+
+                {/* NSE Snapshot from scraped data */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-1">
+                        <NSEIndices />
+                    </div>
+                    <div className="lg:col-span-2">
+                        <NSENewsList limit={8} />
+                    </div>
                 </div>
             </section>
 

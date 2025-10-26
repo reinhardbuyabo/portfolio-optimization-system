@@ -1,6 +1,12 @@
 {
   "news": [
     {
+      "headline": "NSE partners with Hedera, Hashgraph to drive capital markets innovation",
+      "url": "https://live.mystocks.co.ke/news=5055169",
+      "source": "Capitalfm.co.ke",
+      "timestamp": "Today, 8:15 am"
+    },
+    {
       "headline": "CBK Strips PayU Kenya of Payment Licence",
       "url": "https://live.mystocks.co.ke/news=5053162",
       "source": "The Kenyan Wall Street",
@@ -23,15 +29,9 @@
       "url": "https://live.mystocks.co.ke/news=5041582",
       "source": "Business Daily",
       "timestamp": "Fri, 3:55 pm"
-    },
-    {
-      "headline": "East Africa Launches EAE 20 Share Index to Boost Regional Capital Market Integration",
-      "url": "https://live.mystocks.co.ke/news=5040523",
-      "source": "Nilepost News",
-      "timestamp": "Fri, 2:58 pm"
     }
   ],
   "count": 5,
-  "timestamp": "2025-10-22T03:59:07.601278Z",
+  "timestamp": "2025-10-22T13:29:11.109014Z",
   "source": "https://live.mystocks.co.ke/"
 }
