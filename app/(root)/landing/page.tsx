@@ -1,148 +1,114 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import TradingViewWidget from "@/components/TradingViewWidget";
-import NSEIndices from "@/components/nse/NSEIndices";
-import NSENewsList from "@/components/nse/NSENewsList";
-import {
-    MARKET_DATA_WIDGET_CONFIG,
-    MARKET_OVERVIEW_WIDGET_CONFIG,
-    SYMBOL_INFO_WIDGET_CONFIG,
-    CANDLE_CHART_WIDGET_CONFIG,
-    TECHNICAL_ANALYSIS_WIDGET_CONFIG,
-    COMPANY_PROFILE_WIDGET_CONFIG,
-    COMPANY_FINANCIALS_WIDGET_CONFIG,
-} from "@/lib/constants";
+import { useEffect, useState } from "react";
+import SyntheticMarketChart from "@/components/shared/synthetic-market-chart";
+import MarketQuotesTable from "@/components/shared/market-quotes-table";
+import StockHeatmap from "@/components/shared/stock-heatmap";
 
-function Home() {
-    const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
-    
-    // Featured stock symbols for NSE
-    const featuredStocks = [
-        { symbol: "NSE:SCOM", name: "Safaricom PLC" },
-        { symbol: "NSE:EQTY", name: "Equity Group" },
-        { symbol: "NSE:KCB", name: "KCB Group" },
-        { symbol: "NSE:EABL", name: "EABL" },
-    ];
-    
-    const [selectedStock, setSelectedStock] = useState("NSE:SCOM");
-    
-    return (
-        <div className="flex min-h-screen home-wrapper">
-            {/* Hero Section */}
-            <section className="w-full mb-8">
-                <div className="mb-6">
-                    <h1 className="text-3xl md:text-4xl font-bold text-gray-100 mb-2">
-                        Nairobi Stock Exchange Dashboard
-                    </h1>
-                    <p className="text-gray-400 text-base md:text-lg">
-                        Real-time market data, analysis, and insights for NSE stocks
-                    </p>
-                </div>
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import HeatmapKey from "@/components/shared/heatmap-key";
+import { Label } from "@/components/ui/label";
 
-                {/* NSE Snapshot from scraped data */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1">
-                        <NSEIndices />
-                    </div>
-                    <div className="lg:col-span-2">
-                        <NSENewsList limit={8} />
-                    </div>
-                </div>
-            </section>
+export default function LandingPage() {
+  const [data, setData] = useState<{ time_series: any[], summary: any[] }>({ time_series: [], summary: [] });
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [marketHorizon, setMarketHorizon] = useState<string>("1M");
 
-            {/* Market Overview Section */}
-            <section className="w-full mb-8">
-                <TradingViewWidget
-                    title="NSE Market Overview"
-                    scriptUrl={`${scriptUrl}market-overview.js`}
-                    config={MARKET_OVERVIEW_WIDGET_CONFIG}
-                    height={400}
-                />
-            </section>
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetch(`/api/market-data?horizon=${marketHorizon}`);
+      const jsonData = await response.json();
+      setData(jsonData);
+      if (jsonData.summary.length > 0 && !selectedSymbol) {
+        setSelectedSymbol(jsonData.summary[0].symbol);
+      }
+    }
+    fetchData();
+  }, [marketHorizon]);
 
-            {/* Stock Quotes Section */}
-            <section className="w-full mb-8">
-                <TradingViewWidget
-                    title="Live Stock Quotes"
-                    scriptUrl={`${scriptUrl}market-quotes.js`}
-                    config={MARKET_DATA_WIDGET_CONFIG}
-                    height={500}
-                />
-            </section>
-
-            {/* Featured Stock Analysis Section */}
-            <section className="w-full mb-8">
-                <div className="mb-4">
-                    <h2 className="text-2xl font-bold text-gray-100 mb-4">Featured Stock Analysis</h2>
-                    <div className="flex flex-wrap gap-2">
-                        {featuredStocks.map((stock) => (
-                            <button
-                                key={stock.symbol}
-                                onClick={() => setSelectedStock(stock.symbol)}
-                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                                    selectedStock === stock.symbol
-                                        ? "bg-yellow-500 text-gray-900"
-                                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                                }`}
-                            >
-                                {stock.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Symbol Info Widget */}
-                <div className="mb-6">
-                    <TradingViewWidget
-                        scriptUrl={`${scriptUrl}symbol-info.js`}
-                        config={SYMBOL_INFO_WIDGET_CONFIG(selectedStock)}
-                        height={170}
-                    />
-                </div>
-
-                {/* Advanced Chart */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-                    <div className="xl:col-span-2">
-                        <TradingViewWidget
-                            title="Price Chart"
-                            scriptUrl={`${scriptUrl}advanced-chart.js`}
-                            config={CANDLE_CHART_WIDGET_CONFIG(selectedStock)}
-                            height={500}
-                        />
-                    </div>
-                    <div className="xl:col-span-1">
-                        <TradingViewWidget
-                            title="Technical Analysis"
-                            scriptUrl={`${scriptUrl}technical-analysis.js`}
-                            config={TECHNICAL_ANALYSIS_WIDGET_CONFIG(selectedStock)}
-                            height={500}
-                        />
-                    </div>
-                </div>
-
-                {/* Company Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <TradingViewWidget
-                            title="Company Profile"
-                            scriptUrl={`${scriptUrl}symbol-profile.js`}
-                            config={COMPANY_PROFILE_WIDGET_CONFIG(selectedStock)}
-                            height={440}
-                        />
-                    </div>
-                    <div>
-                        <TradingViewWidget
-                            title="Fundamental Data"
-                            scriptUrl={`${scriptUrl}financials.js`}
-                            config={COMPANY_FINANCIALS_WIDGET_CONFIG(selectedStock)}
-                            height={440}
-                        />
-                    </div>
-                </div>
-            </section>
+  return (
+    <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col items-center space-y-10">
+        {/* News Component Placeholder */}
+        <div className="w-full max-w-6xl p-5 border-2 border-dashed rounded-lg">
+          <h2 className="text-2xl font-bold text-center">Scraped News Data Will Be Displayed Here</h2>
         </div>
-    );
-}
 
-export default Home;
+        <div className="w-full max-w-6xl flex items-start justify-center md:space-x-10">
+          {/* Chart */}
+          <div className="w-full md:w-2/3" data-testid="synthetic-market-chart">
+            {data.time_series.length > 0 && <SyntheticMarketChart data={data.time_series} selectedSymbol={selectedSymbol} marketHorizon={marketHorizon} />}
+          </div>
+
+          <div className="w-full md:w-1/3 flex flex-col items-center space-y-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="px-4 py-2 border rounded-lg font-bold">
+                {selectedSymbol || "Select Symbol"}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {data.summary.map(stock => (
+                  <DropdownMenuItem key={stock.symbol} onSelect={() => setSelectedSymbol(stock.symbol)}>
+                    {stock.symbol}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <RadioGroup defaultValue="1M" onValueChange={setMarketHorizon} className="grid grid-cols-2 grid-rows-4 gap-2">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1H" id="1H" className="sr-only" />
+                <Label htmlFor="1H" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1H</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1D" id="1D" className="sr-only" />
+                <Label htmlFor="1D" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1D</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="3D" id="3D" className="sr-only" />
+                <Label htmlFor="3D" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">3D</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1W" id="1W" className="sr-only" />
+                <Label htmlFor="1W" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1W</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1M" id="1M" className="sr-only" />
+                <Label htmlFor="1M" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1M</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="3M" id="3M" className="sr-only" />
+                <Label htmlFor="3M" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">3M</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1Y" id="1Y" className="sr-only" />
+                <Label htmlFor="1Y" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1Y</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="5Y" id="5Y" className="sr-only" />
+                <Label htmlFor="5Y" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">5Y</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+
+        <div className="w-full max-w-6xl flex items-center justify-center md:space-x-10">
+          {/* Heatmap */}
+          <div className="w-full md:w-2/3" data-testid="stock-heatmap">
+            <h2 className="text-2xl font-bold text-center mb-5">Stock Heatmap</h2>
+            {data.summary.length > 0 && <StockHeatmap data={data.summary} />}
+          </div>
+          <div className="w-full md:w-1/3 flex flex-col items-center justify-center space-y-4">
+            <HeatmapKey />
+          </div>
+        </div>
+
+        {/* Quotes Table */}
+        <div className="w-full max-w-6xl">
+          <h2 className="text-2xl font-bold text-center mb-5">Market Quotes</h2>
+          {data.summary.length > 0 && <MarketQuotesTable data={data.summary} />}
+        </div>
+      </div>
+    </main>
+  );
+}
