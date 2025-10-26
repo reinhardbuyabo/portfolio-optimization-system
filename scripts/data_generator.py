@@ -5,8 +5,6 @@ import os
 
 import json
 
-import json
-
 import logging
 import argparse
 
