@@ -94,7 +94,7 @@ export default function LandingPage() {
 
         <div className="w-full max-w-6xl flex items-center justify-center md:space-x-10">
           {/* Heatmap */}
-          <div className="w-full md:w-2/3">
+          <div className="w-full md:w-2/3" data-testid="stock-heatmap">
             <h2 className="text-2xl font-bold text-center mb-5">Stock Heatmap</h2>
             {data.summary.length > 0 && <StockHeatmap data={data.summary} />}
           </div>

@@ -5,6 +5,8 @@ test.describe('Market Overview Page', () => {
   test('should display the market chart, quotes table, and heatmap', async ({ page }) => {
     await page.goto('/landing');
 
+    await page.locator('[data-testid="synthetic-market-chart"] svg').waitFor();
+
     await expect(page.locator('[data-testid="synthetic-market-chart"]')).toBeVisible();
     await expect(page.locator('[data-testid="market-quotes-table"]')).toBeVisible();
     await expect(page.locator('[data-testid="stock-heatmap"]')).toBeVisible();
