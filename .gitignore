@@ -52,3 +52,23 @@ PUBLIC_ACCESS_GUIDE.md
 ROLE_BASED_ACCESS.md
 
 .idea
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+.DS_Store
