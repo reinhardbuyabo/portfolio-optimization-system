@@ -26,7 +26,7 @@ def generate_synthetic_data(horizon: str = "1M"):
     Generates synthetic stock market data based on the files in the datasets/ folder.
     """
     logging.info(f"Starting synthetic data generation for horizon: {horizon}")
-    datasets_path = os.path.join(os.path.dirname(__file__), '..', 'datasets')
+    datasets_path = os.path.join(os.path.dirname(__file__), '..', 'ml', 'datasets')
     all_files = [os.path.join(datasets_path, f) for f in os.listdir(datasets_path) if f.endswith('.csv')]
     logging.info(f"Found {len(all_files)} CSV files: {all_files}")
 
