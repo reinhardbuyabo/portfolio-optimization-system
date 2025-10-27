@@ -1,7 +1,7 @@
 from config.core import settings
 from processing.data_manager import load_dataset, save_pipeline, save_preprocessor
 from processing.preprocessor import DataPreprocessor
-from pipeline.model import create_lstm_model
+from pipeline.lstm_model import create_lstm_model
 from reproducibility import set_seeds, hash_dataframe, hash_files_and_timestamps, log_run_metadata
 import numpy as np
 import datetime

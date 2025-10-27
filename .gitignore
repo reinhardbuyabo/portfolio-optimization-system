@@ -72,3 +72,5 @@ dist/
 *.egg-info/
 
 .DS_Store
+
+*.tox

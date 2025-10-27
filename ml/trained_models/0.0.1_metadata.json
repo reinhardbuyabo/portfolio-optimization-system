@@ -1,10 +1,10 @@
 {
-    "run_timestamp": "2025-10-27T13:52:45.857360",
+    "run_timestamp": "2025-10-27T18:54:21.057636",
     "model_version": "0.0.1",
     "seed": 42,
     "epochs": 10,
     "batch_size": 32,
-    "combined_dataset_hash": "1fe734d8fc0aed23d4eda08d71d717c5a527a66d419f7a23ea33cdff0272db5b",
+    "combined_dataset_hash": "79138b6ed9cb01b1b56f89631b5f56e0245d19d066c714c975435b02103c503c",
     "individual_file_metadata": [
         {
             "file_name": "NSE_data_all_stocks_2013.csv",
