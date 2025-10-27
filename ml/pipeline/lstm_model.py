@@ -1,7 +1,5 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
-from arch import arch_model
-import pandas as pd
 
 
 def create_lstm_model(input_shape: tuple) -> Sequential:
@@ -15,10 +13,4 @@ def create_lstm_model(input_shape: tuple) -> Sequential:
         Dense(units=1)
     ])
     model.compile(optimizer='adam', loss='mean_squared_error')
-    return model
-
-
-def create_garch_model(data: pd.Series):
-    """Create the GARCH model."""
-    model = arch_model(data, vol='GARCH', p=1, q=1)
     return model
