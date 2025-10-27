@@ -1,0 +1,21 @@
+{
+  "indices": {
+    "NASI": {
+      "value": 178.36,
+      "change": 0.64,
+      "change_percent": 0.36
+    },
+    "N20I": {
+      "value": 3010.7,
+      "change": 3.93,
+      "change_percent": 0.13
+    },
+    "N25I": {
+      "value": 4776.45,
+      "change": 30.65,
+      "change_percent": 0.65
+    }
+  },
+  "timestamp": "2025-10-22T13:29:10.956100Z",
+  "source": "https://live.mystocks.co.ke/"
+}
