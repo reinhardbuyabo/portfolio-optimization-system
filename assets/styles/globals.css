@@ -459,6 +459,11 @@ html.dark .upload-field .text-white {
     .alert-delete-btn {
         @apply text-gray-400 rounded-full hover:bg-red-600/15 bg-transparent cursor-pointer transition-colors;
     }
+
+    /* Radio button styling for market horizon selection */
+    .radio-button-group input[type="radio"]:checked + label {
+        @apply border-4 border-black;
+    }
 }
 
 /* Market News Component Styles */
