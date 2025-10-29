@@ -1,28 +1,86 @@
 "use server";
 
+import { z } from "zod";
+import { createPortfolioSchema } from "@/lib/validators";
+import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
-import { convertToPlainObject } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
-export async function getPortfoliosByUser(userId: string) {
-  const portfolios = await prisma.portfolio.findMany({
-    where: { userId },
-    include: {
-      allocations: { include: { asset: true } },
-      results: true,
-      simulations: true,
-    },
-  });
-  return convertToPlainObject(portfolios);
-}
+type PortfolioFormState = {
+  message: string;
+  fields?: Record<string, string>;
+  issues?: string[];
+};
 
-export async function getPortfolioById(id: string) {
-  const portfolio = await prisma.portfolio.findUnique({
-    where: { id },
-    include: {
-      allocations: { include: { asset: true } },
-      results: true,
-      simulations: true,
-    },
+export async function createPortfolio(
+  state: PortfolioFormState,
+  data: FormData,
+): Promise<PortfolioFormState> {
+  const formData = Object.fromEntries(data);
+  const parsed = createPortfolioSchema.safeParse({
+    ...formData,
+    targetReturn: Number(formData.targetReturn),
   });
-  return convertToPlainObject(portfolio);
+
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((issue) => issue.message);
+    return {
+      message: "Invalid form data",
+      issues,
+    };
+  }
+
+  const session = await auth();
+
+  if (!session?.user) {
+    return {
+      message: "Unauthorized: You must be logged in to create a portfolio.",
+    };
+  }
+
+  const { id: userId, role } = session.user;
+
+  if (role !== "INVESTOR" && role !== "PORTFOLIO_MANAGER") {
+    return {
+      message: "Forbidden: You do not have permission to create a portfolio.",
+    };
+  }
+
+  const { name, riskTolerance, targetReturn } = parsed.data;
+
+  try {
+    const existingPortfolio = await prisma.portfolio.findFirst({
+      where: {
+        userId,
+        name,
+      },
+    });
+
+    if (existingPortfolio) {
+      return {
+        message: "A portfolio with this name already exists.",
+      };
+    }
+
+    await prisma.portfolio.create({
+      data: {
+        userId,
+        name,
+        riskTolerance,
+        targetReturn,
+      },
+    });
+
+    revalidatePath("/dashboard/portfolios");
+
+    return {
+      message: "Portfolio created successfully.",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      message: "An unexpected error occurred. Please try again.",
+    };
+  }
 }
