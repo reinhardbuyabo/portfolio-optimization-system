@@ -1,6 +1,8 @@
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useEffect } from 'react';
+import { useActionState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createPortfolio } from '@/lib/actions/portfolios.actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +15,14 @@ const initialState = {
 };
 
 export default function CreatePortfolioPage() {
-  const [state, formAction] = useFormState(createPortfolio, initialState);
+  const [state, formAction] = useActionState(createPortfolio, initialState);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state.message === "Portfolio created successfully.") {
+      router.push('/dashboard');
+    }
+  }, [state.message, router]);
 
   return (
     <div className="container mx-auto py-10">
