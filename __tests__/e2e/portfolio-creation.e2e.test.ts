@@ -1,36 +1,40 @@
 import { test, expect } from '@playwright/test';
+import { createTestSessionToken } from '../helpers/auth-helper';
 
 test.describe('Portfolio Creation', () => {
-  test('should allow an investor to create a new portfolio', async ({ page }) => {
-    test.setTimeout(120000);
+  test('should allow a logged-in user to create a new portfolio', async ({ page }) => {
+    // 1. Programmatically create a JWT session token
+    const sessionToken = createTestSessionToken('test-user-id', 'USER');
 
-    // 1. Set session cookie
-    const sessionToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiY2x4d3F5OHBxMDAwMHUwejY4ejZmNno2eiIsInJvbGUiOiJJTlZFU1RPUiIsImVtYWlsIjoiaW52ZXN0b3JAZXhhbXBsZS5jb20iLCJuYW1lIjoiSW52ZXN0b3IgVXNlciJ9LCJpYXQiOjE3NjE2MzA3MTYsImV4cCI6MTc2MTcxNzExNn0.7btVVWbMqWzgxqpgyRrpbLgAzMKX319aFF3V3Mr2POc';
+    // 2. Set the session cookie
     await page.context().addCookies([
       {
         name: 'next-auth.session-token',
         value: sessionToken,
         domain: 'localhost',
         path: '/',
-        httpOnly: true,
         secure: false,
         sameSite: 'Lax',
       },
     ]);
 
-    // 2. Navigate to the create portfolio page
-    await page.goto('/dashboard/portfolios/create');
+    // 3. Navigate to the dashboard or portfolio page
+    await page.goto('/dashboard');
 
-    // 3. Fill in the form with valid data
-    await page.fill('input[name="name"]', 'My E2E Portfolio');
-    await page.check('input[value="HIGH"]');
-    await page.fill('input[name="targetReturn"]', '10');
+    // 4. Verify that the user is on the dashboard page
+    await expect(page).toHaveURL('/dashboard');
 
-    // 4. Submit the form
+    // 5. Find and click the "Create Portfolio" button
+    await page.click('button:has-text("Create Portfolio")');
+
+    // 6. Fill out the portfolio creation form
+    await page.fill('input[name="name"]', 'My New Portfolio');
+    await page.fill('textarea[name="description"]', 'This is a test portfolio.');
+
+    // 7. Submit the form
     await page.click('button[type="submit"]');
 
-    // 5. Verify that the portfolio was created successfully
-    const successMessage = await page.textContent('p');
-    expect(successMessage).toContain('Portfolio created successfully.');
+    // 8. Verify that the new portfolio is displayed on the page
+    await expect(page.locator('h2:has-text("My New Portfolio")')).toBeVisible();
   });
 });
