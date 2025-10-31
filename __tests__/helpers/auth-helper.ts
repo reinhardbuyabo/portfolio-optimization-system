@@ -10,7 +10,9 @@ export function createTestSessionToken(userId: string, role?: Role): string {
 
   const payload = {
     id: userId,
-    role: role || 'USER',
+    role: role || 'INVESTOR',
+    email: 'test@example.com',
+    name: 'Test User',
   };
 
   const token = jwt.sign(payload, secret, {
