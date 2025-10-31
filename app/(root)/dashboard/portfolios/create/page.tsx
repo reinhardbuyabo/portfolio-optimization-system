@@ -19,10 +19,10 @@ export default function CreatePortfolioPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (state.message === "Portfolio created successfully.") {
+    if (state.success) {
       router.push('/dashboard');
     }
-  }, [state.message, router]);
+  }, [state.success, router]);
 
   return (
     <div className="container mx-auto py-10">

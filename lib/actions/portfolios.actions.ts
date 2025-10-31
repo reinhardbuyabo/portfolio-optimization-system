@@ -9,6 +9,7 @@ import { cookies } from "next/headers";
 
 type PortfolioFormState = {
   message: string;
+  success?: boolean; // Add success flag
   fields?: Record<string, string>;
   issues?: string[];
 };
@@ -28,6 +29,7 @@ export async function createPortfolio(
     return {
       message: "Invalid form data",
       issues,
+      success: false,
     };
   }
 
@@ -36,6 +38,7 @@ export async function createPortfolio(
   if (!session?.user) {
     return {
       message: "Unauthorized: You must be logged in to create a portfolio.",
+      success: false,
     };
   }
 
@@ -44,6 +47,7 @@ export async function createPortfolio(
   if (role !== "INVESTOR" && role !== "PORTFOLIO_MANAGER") {
     return {
       message: "Forbidden: You do not have permission to create a portfolio.",
+      success: false,
     };
   }
 
@@ -60,6 +64,7 @@ export async function createPortfolio(
     if (existingPortfolio) {
       return {
         message: "A portfolio with this name already exists.",
+        success: false,
       };
     }
 
@@ -76,11 +81,13 @@ export async function createPortfolio(
 
     return {
       message: "Portfolio created successfully.",
+      success: true,
     };
   } catch (error) {
     console.log(error);
     return {
       message: "An unexpected error occurred. Please try again.",
+      success: false,
     };
   }
 }
