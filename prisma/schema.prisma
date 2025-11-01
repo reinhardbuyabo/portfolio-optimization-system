@@ -125,16 +125,21 @@ model MarketData {
 }
 
 model Portfolio {
-    id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    userId    String          @db.Uuid
-    createdAt DateTime        @default(now())
-    updatedAt DateTime        @updatedAt
-    status    PortfolioStatus @default(DRAFT)
+    id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name          String
+    userId        String          @db.Uuid
+    riskTolerance RiskTolerance
+    targetReturn  Float
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    status        PortfolioStatus @default(DRAFT)
 
     user        User                  @relation(fields: [userId], references: [id])
     allocations PortfolioAllocation[]
     results     OptimizationResult[]
     simulations Simulation[]
+
+    @@unique([userId, name])
 }
 
 model PortfolioAllocation {

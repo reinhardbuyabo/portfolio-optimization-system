@@ -119,9 +119,6 @@
   body {
     @apply bg-background text-foreground;
   }
-  .radio-button-label[data-state=checked] {
-    background-color: var(--foreground);
-    color: var(--background);
-  }
+
 
 }

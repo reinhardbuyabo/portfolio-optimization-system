@@ -62,35 +62,35 @@ export default function LandingPage() {
             <RadioGroup defaultValue="1M" onValueChange={setMarketHorizon} className="grid grid-cols-2 grid-rows-4 gap-2">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="1H" id="1H" className="sr-only" />
-                <Label htmlFor="1H" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1H</Label>
+                <Label htmlFor="1H" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '1H' ? 'font-bold text-black' : ''}`}>1H</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="1D" id="1D" className="sr-only" />
-                <Label htmlFor="1D" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1D</Label>
+                <Label htmlFor="1D" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '1D' ? 'font-bold text-black' : ''}`}>1D</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="3D" id="3D" className="sr-only" />
-                <Label htmlFor="3D" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">3D</Label>
+                <Label htmlFor="3D" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '3D' ? 'font-bold text-black' : ''}`}>3D</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="1W" id="1W" className="sr-only" />
-                <Label htmlFor="1W" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1W</Label>
+                <Label htmlFor="1W" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '1W' ? 'font-bold text-black' : ''}`}>1W</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="1M" id="1M" className="sr-only" />
-                <Label htmlFor="1M" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1M</Label>
+                <Label htmlFor="1M" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '1M' ? 'font-bold text-black' : ''}`}>1M</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="3M" id="3M" className="sr-only" />
-                <Label htmlFor="3M" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">3M</Label>
+                <Label htmlFor="3M" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '3M' ? 'font-bold text-black' : ''}`}>3M</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="1Y" id="1Y" className="sr-only" />
-                <Label htmlFor="1Y" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">1Y</Label>
+                <Label htmlFor="1Y" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '1Y' ? 'font-bold text-black' : ''}`}>1Y</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="5Y" id="5Y" className="sr-only" />
-                <Label htmlFor="5Y" className="radio-button-label px-4 py-2 border rounded-lg cursor-pointer">5Y</Label>
+                <Label htmlFor="5Y" className={`radio-button-label px-4 py-2 border rounded-lg cursor-pointer ${marketHorizon === '5Y' ? 'font-bold text-black' : ''}`}>5Y</Label>
               </div>
             </RadioGroup>
           </div>

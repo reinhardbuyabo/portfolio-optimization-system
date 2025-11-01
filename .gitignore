@@ -74,3 +74,12 @@ dist/
 .DS_Store
 
 *.tox
+
++# Playwright
++playwright-auth.json
++test-results/
++playwright-report/
+
+# venv
+*.venv/
+*venv/

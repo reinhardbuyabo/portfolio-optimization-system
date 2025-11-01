@@ -94,7 +94,10 @@ export const portfolioWithAllocations = (
   kengenId: string,
   equityId: string
 ) => ({
+  name: "Managed Growth Portfolio",
   userId: managerId,
+  riskTolerance: RiskTolerance.MEDIUM,
+  targetReturn: 0.15,
   status: PortfolioStatus.ACTIVE,
   allocations: {
     create: [

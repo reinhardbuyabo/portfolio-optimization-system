@@ -26,3 +26,10 @@ export const signUpFormSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
+// Schema for creating a new portfolio
+export const createPortfolioSchema = z.object({
+  name: z.string().min(3, "Portfolio name must be at least 3 characters"),
+  riskTolerance: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  targetReturn: z.number().min(0, "Target return must be at least 0").max(100, "Target return must be at most 100"),
+});

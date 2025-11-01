@@ -8,6 +8,7 @@ import type { NextAuthConfig, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { Role } from "@prisma/client";
 
+
 export const config = {
     pages: {
         signIn: "/sign-in",
@@ -47,7 +48,6 @@ export const config = {
 
                 if (!user || !user.password) return null;
 
-                // Check if this is a 2FA verification bypass
                 const password = credentials.password as string;
                 if (password.startsWith('2FA_VERIFIED:')) {
                     const userId = password.replace('2FA_VERIFIED:', '');
