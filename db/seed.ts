@@ -2,11 +2,11 @@ import { PrismaClient } from "@prisma/client";
 import {
     users,
     investorProfiles,
-    assets,
     marketData,
     portfolioWithAllocations,
 } from "./sample-data";
 import { prisma } from "./prisma";
+import { getAssetsFromCSV } from "./nse-assets";
 
 async function main() {
     console.log("🌱 Clearing old data...");
@@ -43,7 +43,8 @@ async function main() {
     });
 
     // --- ASSETS ---
-    const createdAssets = await prisma.asset.createMany({
+    const assets = getAssetsFromCSV();
+    await prisma.asset.createMany({
         data: assets,
     });
 

@@ -11,12 +11,19 @@ async function globalSetup() {
   const testEmail = process.env.TEST_EMAIL;
   const testPassword = process.env.TEST_PASSWORD;
 
+  console.log("TEST_EMAIL:", testEmail);
+  console.log("TEST_PASSWORD:", testPassword);
+
   if (!testEmail || !testPassword) {
     throw new Error('TEST_EMAIL and TEST_PASSWORD must be set in the environment for Playwright setup.');
   }
 
+  await page.waitForSelector('input[name="email"]');
   await page.fill('input[name="email"]', testEmail);
   await page.fill('input[name="password"]', testPassword);
+
+  // Wait for the network to be idle before clicking the button
+  await page.waitForLoadState('networkidle');
 
   // Click the sign-in button
   await page.click('button[type="submit"]');

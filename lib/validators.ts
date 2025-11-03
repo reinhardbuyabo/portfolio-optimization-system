@@ -33,3 +33,13 @@ export const createPortfolioSchema = z.object({
   riskTolerance: z.enum(["LOW", "MEDIUM", "HIGH"]),
   targetReturn: z.number().min(0, "Target return must be at least 0").max(100, "Target return must be at most 100"),
 });
+
+export const updatePortfolioAllocationsSchema = z.array(z.object({
+  assetId: z.string().uuid(),
+  weight: z.number().min(0).max(1),
+})).refine(allocations => {
+  const totalWeight = allocations.reduce((sum, alloc) => sum + alloc.weight, 0);
+  return Math.abs(totalWeight - 1) < 0.0001; // Allow for small floating point inaccuracies
+}, {
+  message: "The sum of all asset weights must be 100%.",
+});
