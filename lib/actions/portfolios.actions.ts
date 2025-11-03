@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { formatError } from "../utils";
 
 type PortfolioFormState = {
   message: string;
@@ -18,42 +19,33 @@ export async function createPortfolio(
   state: PortfolioFormState,
   data: FormData,
 ): Promise<PortfolioFormState> {
-  const formData = Object.fromEntries(data);
-  const parsed = createPortfolioSchema.safeParse({
-    ...formData,
-    targetReturn: Number(formData.targetReturn),
-  });
-
-  if (!parsed.success) {
-    const issues = parsed.error.issues.map((issue) => issue.message);
-    return {
-      message: "Invalid form data",
-      issues,
-      success: false,
-    };
-  }
-
-  const session = await auth();
-
-  if (!session?.user) {
-    return {
-      message: "Unauthorized: You must be logged in to create a portfolio.",
-      success: false,
-    };
-  }
-
-  const { id: userId, role } = session.user;
-
-  if (role !== "INVESTOR" && role !== "PORTFOLIO_MANAGER") {
-    return {
-      message: "Forbidden: You do not have permission to create a portfolio.",
-      success: false,
-    };
-  }
-
-  const { name, riskTolerance, targetReturn } = parsed.data;
-
   try {
+    const formData = Object.fromEntries(data);
+    const parsed = createPortfolioSchema.parse({
+      ...formData,
+      targetReturn: Number(formData.targetReturn),
+    });
+
+    const session = await auth();
+
+    if (!session?.user) {
+      return {
+        message: "Unauthorized: You must be logged in to create a portfolio.",
+        success: false,
+      };
+    }
+
+    const { id: userId, role } = session.user;
+
+    if (role !== "INVESTOR" && role !== "PORTFOLIO_MANAGER") {
+      return {
+        message: "Forbidden: You do not have permission to create a portfolio.",
+        success: false,
+      };
+    }
+
+    const { name, riskTolerance, targetReturn } = parsed;
+
     const existingPortfolio = await prisma.portfolio.findFirst({
       where: {
         userId,
@@ -86,7 +78,7 @@ export async function createPortfolio(
   } catch (error) {
     console.log(error);
     return {
-      message: "An unexpected error occurred. Please try again.",
+      message: formatError(error),
       success: false,
     };
   }
