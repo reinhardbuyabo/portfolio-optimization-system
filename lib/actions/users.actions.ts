@@ -98,8 +98,9 @@ export async function signInWithCredentials(
       return { success: false, message: "Invalid email or password" };
     }
 
-    // If this is the test user, bypass 2FA and sign in directly
-    if (user.email === process.env.TEST_EMAIL) {
+    // If this is the test user, bypass 2FA and sign in directly (only in non-production environments)
+    const isDevelopmentOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    if (process.env.TEST_EMAIL && user.email === process.env.TEST_EMAIL && isDevelopmentOrTest) {
       await signIn("credentials", {
         email: credentials.email,
         password: credentials.password,
