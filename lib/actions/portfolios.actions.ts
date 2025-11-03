@@ -1,13 +1,13 @@
 "use server";
 
 import { z } from "zod";
-import { createPortfolioSchema, updatePortfolioAllocationsSchema } from "@/lib/validators";
+import { createPortfolioSchema, updatePortfolioAllocationsSchema, portfolioSchema } from "@/lib/validators";
 import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { formatError } from "../utils";
-import { Prisma } from "@prisma/client";
+import { formatError, getErrorMessage } from "../utils";
+import { Portfolio, Prisma, Role } from "@prisma/client";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export type PortfolioFormState = {
@@ -17,94 +17,47 @@ export type PortfolioFormState = {
   issues?: string[];
 };
 
+// Type for the createPortfolio function
+type CreatePortfolioInput = z.infer<typeof portfolioSchema>;
+
+/**
+ * Creates a new portfolio for the authenticated user.
+ * @param values - The portfolio data.
+ * @returns An object with the created portfolio or an error message.
+ */
 export async function createPortfolio(
-  state: PortfolioFormState,
-  data: FormData,
-): Promise<PortfolioFormState> {
+  values: CreatePortfolioInput
+): Promise<{ portfolio?: Portfolio; error?: string }> {
   try {
-    const formData = Object.fromEntries(data);
-    const parsed = createPortfolioSchema.parse({
-      ...formData,
-      targetReturn: Number(formData.targetReturn),
-    });
-
     const session = await auth();
-
-    if (!session?.user) {
-      return {
-        message: "Unauthorized: You must be logged in to create a portfolio.",
-        success: false,
-      };
+    if (!session?.user?.id) {
+      return { error: "Unauthorized: You must be logged in." };
     }
 
-    const { id: userId, role } = session.user;
-
-    const userExists = await prisma.user.findUnique({ where: { id: userId } });
-    if (!userExists) {
-      return {
-        message: "User not found. Please log in again.",
-        success: false,
-      };
+    const validatedFields = portfolioSchema.safeParse(values);
+    if (!validatedFields.success) {
+      return { error: "Invalid input." };
     }
 
-    if (role !== "INVESTOR" && role !== "PORTFOLIO_MANAGER") {
-      return {
-        message: "Forbidden: You do not have permission to create a portfolio.",
-        success: false,
-      };
-    }
+    const { name, description, risk_profile, time_horizon, initial_investment } =
+      validatedFields.data;
 
-    const { name, riskTolerance, targetReturn } = parsed;
-
-    const existingPortfolio = await prisma.portfolio.findFirst({
-      where: {
-        userId,
-        name,
-      },
-    });
-
-    if (existingPortfolio) {
-      return {
-        message: "A portfolio with this name already exists.",
-        success: false,
-      };
-    }
-
-    await prisma.portfolio.create({
+    const portfolio = await prisma.portfolio.create({
       data: {
-        userId,
         name,
-        riskTolerance,
-        targetReturn,
+        description,
+        risk_profile,
+        time_horizon,
+        initial_investment,
+        userId: session.user.id,
       },
     });
 
     revalidatePath("/dashboard/portfolios");
 
-    return {
-      message: "Portfolio created successfully.",
-      success: true,
-    };
+    return { portfolio };
   } catch (error) {
-    if (isRedirectError(error)) {
-      throw error;
-    }
-
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return {
-        message: "A portfolio with this name already exists.",
-        success: false,
-      };
-    }
-
-    console.log(error);
-    return {
-      message: formatError(error),
-      success: false,
-    };
+    return { error: getErrorMessage(error) };
   }
 }
 
@@ -118,30 +71,26 @@ export async function getPortfolioById(portfolioId: string) {
 
   const portfolio = await prisma.portfolio.findUnique({
     where: { id: portfolioId },
+    include: {
+      user: true,
+      assets: {
+        include: {
+          asset: true,
+        },
+      },
+    },
   });
 
   if (!portfolio) {
     return null;
   }
 
-  const isInvestor = user.role === "INVESTOR";
-  const isPortfolioManager = user.role === "PORTFOLIO_MANAGER";
-  const isAnalyst = user.role === "ANALYST";
-
-  if (isInvestor && portfolio.userId !== user.id) {
+  // Investors can only see their own portfolios
+  if (user.role === Role.INVESTOR && portfolio.userId !== user.id) {
     return null;
   }
 
-  if (isPortfolioManager || isAnalyst) {
-    return portfolio;
-  }
-
-  // Default to returning the portfolio if the user is the owner
-  if (portfolio.userId === user.id) {
-    return portfolio;
-  }
-
-  return null;
+  return portfolio;
 }
 
 export async function getPortfolioByIdWithRelations(portfolioId: string) {
@@ -205,41 +154,41 @@ export async function getPortfolios(searchParams: {
   sortBy?: string;
 }) {
   const session = await auth();
-  const user = session?.user;
-
-  if (!user) {
-    return [];
+  if (!session?.user) {
+    throw new Error("Unauthorized");
   }
 
+  const { user } = session;
   const { investor, sortBy } = searchParams;
 
-  const where: Prisma.PortfolioWhereInput = {};
+  const where: any = {};
 
-  if (user.role === "INVESTOR") {
+  if (user.role === Role.INVESTOR) {
     where.userId = user.id;
   } else if (investor) {
-    where.user = {
-      name: {
-        contains: investor,
-        mode: "insensitive",
-      },
-    };
+    where.userId = investor;
   }
 
-  const orderBy: Prisma.PortfolioOrderByWithRelationInput = {};
-
+  const orderBy: any = {};
   if (sortBy === "name") {
     orderBy.name = "asc";
-  } else if (sortBy === "createdAt") {
-    orderBy.createdAt = "desc";
+  } else if (sortBy === "date") {
+    orderBy.updatedAt = "desc";
   }
 
-  const portfolios = await prisma.portfolio.findMany({
+  return prisma.portfolio.findMany({
     where,
     orderBy,
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
   });
-
-  return portfolios;
 }
 
 export async function getPortfoliosWithRelations(searchParams: {
@@ -384,5 +333,47 @@ export async function updatePortfolioAllocations(
     return { success: true };
   } catch (error) {
     return { error: formatError(error) };
+  }
+}
+
+/**
+ * Deletes a portfolio by its ID.
+ * @param id - The ID of the portfolio to delete.
+ * @returns An object indicating success or failure.
+ */
+export async function deletePortfolio(
+  id: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return { error: "Unauthorized" };
+    }
+
+    const portfolio = await prisma.portfolio.findUnique({
+      where: { id },
+    });
+
+    if (!portfolio) {
+      return { error: "Portfolio not found" };
+    }
+
+    // Only the owner or an admin can delete the portfolio
+    if (
+      portfolio.userId !== session.user.id &&
+      session.user.role !== Role.ADMIN
+    ) {
+      return { error: "Forbidden" };
+    }
+
+    await prisma.portfolio.delete({
+      where: { id },
+    });
+
+    revalidatePath("/dashboard/portfolios");
+
+    return { success: true };
+  } catch (error) {
+    return { error: getErrorMessage(error) };
   }
 }
