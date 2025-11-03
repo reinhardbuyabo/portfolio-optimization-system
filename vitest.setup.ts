@@ -2,6 +2,13 @@ import '@testing-library/jest-dom'
 import { beforeAll, vi } from 'vitest'
 import { loadEnvConfig } from '@next/env'
 
+// Mock ResizeObserver
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+
 // Load environment variables from .env files
 const projectDir = process.cwd()
 loadEnvConfig(projectDir)

@@ -98,6 +98,17 @@ export async function signInWithCredentials(
       return { success: false, message: "Invalid email or password" };
     }
 
+    // If this is the test user, bypass 2FA and sign in directly (only in non-production environments)
+    const isDevelopmentOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    if (process.env.TEST_EMAIL && user.email === process.env.TEST_EMAIL && isDevelopmentOrTest) {
+      await signIn("credentials", {
+        email: credentials.email,
+        password: credentials.password,
+        redirect: false,
+      });
+      redirect("/dashboard");
+    }
+
     // Generate and send 2FA code
     const code = randomInt(100000, 999999).toString();
     const twoFactorExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
@@ -120,7 +131,7 @@ export async function signInWithCredentials(
           <h2>Your Login Code</h2>
           <p>Your verification code is: <strong>${code}</strong></p>
           <p>This code will expire in 5 minutes.</p>
-          <p>If you didn't request this code, please ignore this email.</p>
+          <p>If you didn\'t request this code, please ignore this email.</p>
         `,
       });
     } catch (emailError) {

@@ -26,3 +26,20 @@ export const signUpFormSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
+// Schema for creating a new portfolio
+export const createPortfolioSchema = z.object({
+  name: z.string().min(3, "Portfolio name must be at least 3 characters"),
+  riskTolerance: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  targetReturn: z.number().min(0, "Target return must be at least 0").max(100, "Target return must be at most 100"),
+});
+
+export const updatePortfolioAllocationsSchema = z.array(z.object({
+  assetId: z.string().uuid(),
+  weight: z.number().min(0).max(1),
+})).refine(allocations => {
+  const totalWeight = allocations.reduce((sum, alloc) => sum + alloc.weight, 0);
+  return Math.abs(totalWeight - 1) < 0.0001; // Allow for small floating point inaccuracies
+}, {
+  message: "The sum of all asset weights must be 100%.",
+});
