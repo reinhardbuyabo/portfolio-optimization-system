@@ -61,11 +61,17 @@ export default function CreatePortfolioPage() {
             </div>
 
             {state.message && (
-              <p className={`text-sm ${state.issues ? 'text-red-500' : 'text-green-500'}`}>
-                {state.message}
-              </p>
+              <div className="text-sm">
+                <p className={state.success ? 'text-green-500' : 'text-red-500'}>
+                  {state.message}
+                </p>
+                {!!state.issues?.length && (
+                  <ul className="mt-2 list-disc pl-5 text-red-500">
+                    {state.issues.map((msg, i) => <li key={i}>{msg}</li>)}
+                  </ul>
+                )}
+              </div>
             )}
-
             <Button type="submit">Create Portfolio</Button>
           </form>
         </CardContent>
