@@ -131,11 +131,13 @@ function PortfolioManagerDashboard() {
           description="Manage and optimize portfolios"
           icon="💼"
         />
-        <DashboardCard
-          title="Client Portfolios"
-          description="View and manage client portfolios"
-          icon="👥"
-        />
+        <Link href="/dashboard/client-portfolios">
+          <DashboardCard
+            title="Client Portfolios"
+            description="View and manage client portfolios"
+            icon="👥"
+          />
+        </Link>
         <DashboardCard
           title="Optimization Tools"
           description="Run portfolio optimization algorithms"
