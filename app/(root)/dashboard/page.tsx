@@ -2,6 +2,36 @@ import { auth } from "@/auth";
 import { RoleBadge } from "@/components/shared/role-badge";
 import { Role } from "@prisma/client";
 import { AuthRequired } from "@/components/shared/auth-required";
+import Link from "next/link";
+import { ToastDisplay } from "@/components/shared/toast-display"; // New import
+
+interface DashboardCardProps {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+function DashboardCard({ title, description, icon }: DashboardCardProps) {
+  return (
+    <div className="p-6 rounded-lg border bg-card hover:shadow-lg transition-shadow cursor-pointer">
+      <div className="text-4xl mb-4">{icon}</div>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function CreatePortfolioCard() {
+  return (
+    <Link href="/dashboard/portfolios/create">
+      <DashboardCard
+        title="Create Portfolio"
+        description="Create a new investment portfolio"
+        icon="+"
+      />
+    </Link>
+  );
+}
 
 /**
  * Role-based Dashboard - Shows different content based on user role
@@ -17,6 +47,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="p-6 space-y-8">
+      <ToastDisplay /> {/* Render ToastDisplay here */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <RoleBadge role={user.role} />
@@ -94,6 +125,7 @@ function PortfolioManagerDashboard() {
         Portfolio Manager Dashboard
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <CreatePortfolioCard />
         <DashboardCard
           title="My Portfolios"
           description="Manage and optimize portfolios"
@@ -174,6 +206,7 @@ function InvestorDashboard() {
     <section className="space-y-4">
       <h2 className="text-2xl font-semibold text-green-600">Investor Dashboard</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <CreatePortfolioCard />
         <DashboardCard
           title="My Portfolio"
           description="View your investment portfolio"
@@ -206,21 +239,5 @@ function InvestorDashboard() {
         />
       </div>
     </section>
-  );
-}
-
-interface DashboardCardProps {
-  title: string;
-  description: string;
-  icon: string;
-}
-
-function DashboardCard({ title, description, icon }: DashboardCardProps) {
-  return (
-    <div className="p-6 rounded-lg border bg-card hover:shadow-lg transition-shadow cursor-pointer">
-      <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
   );
 }

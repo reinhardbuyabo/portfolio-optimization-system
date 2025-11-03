@@ -36,7 +36,6 @@ const CredentialsSignInForm = () => {
             </Button>
         );
     };
-
     return (
         <form action={action}>
             <input type="hidden" name="callbackUrl" value={callbackUrl} />
