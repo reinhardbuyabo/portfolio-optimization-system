@@ -7,6 +7,8 @@ import { prisma } from "@/db/prisma";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { formatError } from "../utils";
+import { Prisma } from "@prisma/client";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 type PortfolioFormState = {
   message: string;
@@ -76,6 +78,20 @@ export async function createPortfolio(
       success: true,
     };
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return {
+        message: "A portfolio with this name already exists.",
+        success: false,
+      };
+    }
+
     console.log(error);
     return {
       message: formatError(error),
