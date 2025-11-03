@@ -10,9 +10,9 @@ import { formatError } from "../utils";
 import { Prisma } from "@prisma/client";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-type PortfolioFormState = {
+export type PortfolioFormState = {
   message: string;
-  success?: boolean; // Add success flag
+  success: boolean; // Add success flag
   fields?: Record<string, string>;
   issues?: string[];
 };

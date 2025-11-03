@@ -1,11 +1,16 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import CreatePortfolioPage from '@/app/(root)/dashboard/portfolios/create/page';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react'; // Corrected import
+import { PortfolioFormState } from '@/lib/actions/portfolios.actions';
 
-vi.mock('react-dom', () => ({
-  useFormState: vi.fn(),
-}));
+vi.mock('react', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useActionState: vi.fn<[], [PortfolioFormState, Function, boolean]>(),
+  };
+});
 
 vi.mock('@/lib/actions/portfolios.actions', () => ({
   createPortfolio: vi.fn(),
@@ -13,7 +18,7 @@ vi.mock('@/lib/actions/portfolios.actions', () => ({
 
 describe('CreatePortfolioPage', () => {
   it('should render the form correctly', () => {
-    vi.mocked(useFormState).mockReturnValue([ { message: '' }, vi.fn() ]);
+    vi.mocked(useActionState).mockReturnValue([ { message: '', success: false }, vi.fn(), false ]);
     render(<CreatePortfolioPage />);
 
     expect(screen.getByLabelText('Portfolio Name')).toBeInTheDocument();
@@ -26,7 +31,7 @@ describe('CreatePortfolioPage', () => {
 
   it('should submit the form with the correct data', () => {
     const formAction = vi.fn();
-    vi.mocked(useFormState).mockReturnValue([ { message: '' }, formAction ]);
+    vi.mocked(useActionState).mockReturnValue([ { message: '', success: false }, formAction, false ]);
     render(<CreatePortfolioPage />);
 
     fireEvent.change(screen.getByLabelText('Portfolio Name'), { target: { value: 'My Test Portfolio' } });
@@ -39,7 +44,7 @@ describe('CreatePortfolioPage', () => {
   });
 
   it('should display a success message when the form is submitted successfully', async () => {
-    vi.mocked(useFormState).mockReturnValue([ { message: 'Portfolio created successfully.' }, vi.fn() ]);
+    vi.mocked(useActionState).mockReturnValue([ { message: 'Portfolio created successfully.', success: true }, vi.fn(), false ]);
 
     render(<CreatePortfolioPage />);
 
@@ -47,7 +52,7 @@ describe('CreatePortfolioPage', () => {
   });
 
   it('should display an error message when the form submission fails', async () => {
-    vi.mocked(useFormState).mockReturnValue([ { message: 'An unexpected error occurred.', issues: [] }, vi.fn() ]);
+    vi.mocked(useActionState).mockReturnValue([ { message: 'An unexpected error occurred.', issues: [], success: false }, vi.fn(), false ]);
 
     render(<CreatePortfolioPage />);
 

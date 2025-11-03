@@ -3,6 +3,7 @@ import { RoleBadge } from "@/components/shared/role-badge";
 import { Role } from "@prisma/client";
 import { AuthRequired } from "@/components/shared/auth-required";
 import Link from "next/link";
+import { ToastDisplay } from "@/components/shared/toast-display"; // New import
 
 interface DashboardCardProps {
   title: string;
@@ -46,6 +47,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="p-6 space-y-8">
+      <ToastDisplay /> {/* Render ToastDisplay here */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <RoleBadge role={user.role} />

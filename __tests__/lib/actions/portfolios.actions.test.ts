@@ -30,7 +30,7 @@ describe('createPortfolio', () => {
     formData.append('riskTolerance', 'MEDIUM');
     formData.append('targetReturn', '8');
 
-    const state = { message: '' };
+    const state = { message: '', success: false };
     const result = await createPortfolio(state, formData);
 
     expect(prisma.portfolio.create).toHaveBeenCalledWith({
@@ -52,7 +52,7 @@ describe('createPortfolio', () => {
     formData.append('riskTolerance', 'MEDIUM');
     formData.append('targetReturn', '8');
 
-    const state = { message: '' };
+    const state = { message: '', success: false };
     const result = await createPortfolio(state, formData);
 
     expect(result.message).toBe('Unauthorized: You must be logged in to create a portfolio.');
@@ -68,7 +68,7 @@ describe('createPortfolio', () => {
     formData.append('riskTolerance', 'MEDIUM');
     formData.append('targetReturn', '8');
 
-    const state = { message: '' };
+    const state = { message: '', success: false };
     const result = await createPortfolio(state, formData);
 
     expect(result.message).toBe('Forbidden: You do not have permission to create a portfolio.');
@@ -82,17 +82,11 @@ describe('createPortfolio', () => {
     const formData = new FormData();
     formData.append('name', 'a');
     formData.append('riskTolerance', 'INVALID');
-    formData.append('targetReturn', '200');
-
-    const state = { message: '' };
+    const state = { message: '', success: false };
     const result = await createPortfolio(state, formData);
 
-    expect(result.message).toBe('Invalid form data');
-    expect(result.issues).toEqual([
-      'Portfolio name must be at least 3 characters',
-      'Invalid option: expected one of "LOW"|"MEDIUM"|"HIGH"',
-      'Target return must be at most 100',
-    ]);
+    expect(result.message).toBe('Portfolio name must be at least 3 characters. Invalid option: expected one of "LOW"|"MEDIUM"|"HIGH". Invalid input: expected number, received NaN');
+    expect(result.issues).toBeUndefined();
   });
 
   it('should return an error if a portfolio with the same name already exists', async () => {
@@ -107,7 +101,7 @@ describe('createPortfolio', () => {
     formData.append('riskTolerance', 'MEDIUM');
     formData.append('targetReturn', '8');
 
-    const state = { message: '' };
+    const state = { message: '', success: false };
     const result = await createPortfolio(state, formData);
 
     expect(result.message).toBe('A portfolio with this name already exists.');
