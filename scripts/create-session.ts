@@ -19,4 +19,11 @@ async function main() {
   console.log(session.sessionToken);
 }
 
-main();
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
