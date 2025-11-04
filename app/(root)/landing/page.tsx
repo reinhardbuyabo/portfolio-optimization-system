@@ -18,17 +18,31 @@ export default function LandingPage() {
 
   useEffect(() => {
     async function fetchData() {
-      console.log("Fetching data for horizon:", marketHorizon);
+      console.log("Fetching live NSE data for horizon:", marketHorizon);
       try {
-        const response = await fetch(`/api/market-data?horizon=${marketHorizon}`);
+        // Try live data first
+        const response = await fetch(`/api/market-data-live?horizon=${marketHorizon}`);
         const jsonData = await response.json();
-        console.log("Fetched data:", jsonData);
+        
+        console.log("Fetched data from:", jsonData.source || 'unknown');
         setData(jsonData);
+        
         if (jsonData.summary.length > 0 && !selectedSymbol) {
           setSelectedSymbol(jsonData.summary[0].symbol);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        // Fallback to synthetic data
+        try {
+          const fallbackResponse = await fetch(`/api/market-data?horizon=${marketHorizon}`);
+          const fallbackData = await fallbackResponse.json();
+          setData(fallbackData);
+          if (fallbackData.summary.length > 0 && !selectedSymbol) {
+            setSelectedSymbol(fallbackData.summary[0].symbol);
+          }
+        } catch (fallbackError) {
+          console.error("Fallback also failed:", fallbackError);
+        }
       }
     }
     fetchData();
