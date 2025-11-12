@@ -191,3 +191,41 @@ model Authenticator {
 
     @@unique([userId, credentialID])
 }
+
+model LSTMPrediction {
+    id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbol            String   @db.VarChar(10)
+    predictionDate    DateTime @default(now())
+    prediction        Float    // Actual price in KES
+    predictionScaled  Float    // Scaled value (0-1)
+    priceRangeMin     Float    // Minimum from input data
+    priceRangeMax     Float    // Maximum from input data
+    executionTime     Float    // Time taken in seconds
+    inputDataPoints   Int      // Number of days used (should be 60)
+    createdAt         DateTime @default(now())
+
+    @@index([symbol, predictionDate])
+}
+
+model GARCHVolatility {
+    id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbol                String   @db.VarChar(10)
+    predictionDate        DateTime @default(now())
+    forecastedVariance    Float    // Daily variance
+    volatilityAnnualized  Float    // Annualized volatility (percentage)
+    executionTime         Float    // Time taken in seconds
+    inputDataPoints       Int      // Number of days used for calculation
+    createdAt             DateTime @default(now())
+
+    @@index([symbol, predictionDate])
+}
+
+model PredictionBatch {
+    id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbols       String[] // Array of symbols in the batch
+    totalCount    Int      // Total number of stocks
+    successCount  Int      // Successfully processed
+    failureCount  Int      // Failed predictions
+    totalTime     Float    // Total execution time in seconds
+    createdAt     DateTime @default(now())
+}

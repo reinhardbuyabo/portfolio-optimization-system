@@ -1,23 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPortfolioById } from "@/lib/actions/portfolios.actions";
-import * as tf from "@tensorflow/tfjs-node";
 import path from "path";
 
-let model: tf.LayersModel | null = null;
+// NOTE: This endpoint is DEPRECATED. Use /api/ml/predict/portfolio instead.
+// TensorFlow.js is not installed and ML predictions are handled by the Python ML API.
+
+let model: any | null = null;
 
 async function loadModel() {
-  if (model) {
-    return model;
-  }
-  const modelPath = `file://${path.join(
-    process.cwd(),
-    "ml/trained_models/0.0.1.h5"
-  )}`;
-  console.log("Loading optimization model from:", modelPath);
-  model = await tf.loadLayersModel(modelPath);
-  console.log("Optimization model loaded.");
-  return model;
+  // TensorFlow import disabled - use Python ML API instead
+  throw new Error("This endpoint is deprecated. Use /api/ml/predict/portfolio instead.");
+  
+  // if (model) {
+  //   return model;
+  // }
+  // const tf = await import("@tensorflow/tfjs-node");
+  // const modelPath = `file://${path.join(
+  //   process.cwd(),
+  //   "ml/trained_models/0.0.1.h5"
+  // )}`;
+  // console.log("Loading optimization model from:", modelPath);
+  // model = await tf.loadLayersModel(modelPath);
+  // console.log("Optimization model loaded.");
+  // return model;
 }
 
 export async function POST(

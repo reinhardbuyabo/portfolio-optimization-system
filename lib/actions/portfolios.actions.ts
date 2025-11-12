@@ -317,6 +317,20 @@ export async function updatePortfolioAllocations(
   try {
     const validatedAllocations = updatePortfolioAllocationsSchema.parse(allocations);
 
+    // Validation: no duplicate assets and weights sum to ~1 (100%)
+    const ids = new Set<string>();
+    let sum = 0;
+    for (const a of validatedAllocations) {
+      if (ids.has(a.assetId)) {
+        return { error: "Duplicate asset in allocations." };
+      }
+      ids.add(a.assetId);
+      sum += a.weight;
+    }
+    if (Math.abs(sum - 1) > 0.001) {
+      return { error: "Allocation weights must sum to 100%." };
+    }
+
     await prisma.$transaction(async (tx) => {
       await Promise.all(
         validatedAllocations.map((alloc) =>
