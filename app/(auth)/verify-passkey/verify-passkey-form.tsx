@@ -54,7 +54,7 @@ const VerifyPasskeyForm = () => {
       // Success!
       setSuccess(true);
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard");
         // Force a full reload to ensure database changes are reflected
         router.refresh();
       }, 1500);

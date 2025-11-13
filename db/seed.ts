@@ -12,6 +12,7 @@ async function main() {
     console.log("🌱 Clearing old data...");
 
     // Order matters because of foreign key dependencies
+    await prisma.portfolioValuation.deleteMany();
     await prisma.simulation.deleteMany();
     await prisma.optimizationResult.deleteMany();
     await prisma.portfolioAllocation.deleteMany();

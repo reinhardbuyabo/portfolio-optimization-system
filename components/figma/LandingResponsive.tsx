@@ -1,40 +1,43 @@
 "use client";
 
 import React from "react";
-
-// Figma icon assets
-const imgBadge = "http://localhost:3845/assets/4a35e705cebfec939b1a8ba514221c96c63f3b91.svg";
-const icon1 = "http://localhost:3845/assets/56aa7e15c827d8a8edee0422bc598562e8924b96.svg"; // LSTM
-const icon2 = "http://localhost:3845/assets/e6e50c272933c7db46f64c3b2d6aa99f1f58a5e2.svg"; // Volatility
-const icon3 = "http://localhost:3845/assets/93349638703d4b2358363dbb37a0230bbafe7159.svg"; // Optimization
-const icon4 = "http://localhost:3845/assets/04aa6fc55e5e28575180e544b5e6b97b537894dd.svg"; // Efficient Frontier
-const icon5 = "http://localhost:3845/assets/6ceaad3cebf9e8e573ea956969ef4b525f47a67b.svg"; // Risk metrics
-const icon6 = "http://localhost:3845/assets/ff5da02926ec0b862751a48d38a909cbfaea7de1.svg"; // Market data
-const logo = "http://localhost:3845/assets/c2c8fe69e1f07376880d69787c35042c66652ba3.svg";
+import Link from "next/link";
+import Image from "next/image";
+import { 
+  TrendingUp, 
+  BarChart3, 
+  LineChart, 
+  PieChart, 
+  Activity, 
+  Globe
+} from "lucide-react";
+import LightningIcon from "@/assets/lightning.svg";
 
 export default function LandingResponsive() {
   return (
-    <div className="dark min-h-screen w-full bg-[#020618]">
+    <div className="bg-[#020618] relative min-h-screen w-full">
       {/* Header */}
-      <header className="border-b border-[#1e283d]">
+      <header className="bg-[#0f172b] border-b border-[#1e283d]">
         <div className="mx-auto w-full max-w-[1063px] h-[70px] flex items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="logo" className="h-10 w-10" />
+          <Link href="/landing" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 bg-gradient-to-br from-chart-1 to-chart-2 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-primary-foreground" />
+            </div>
             <span className="text-slate-100 text-[20px] leading-[28px]">LSTM-GARCH</span>
-          </div>
+          </Link>
           <nav className="flex items-center gap-4">
-            <button className="text-slate-100 text-[16px] leading-[24px] h-10 px-4 rounded-[12px]">Login</button>
-            <button className="h-10 rounded-[12px] px-4 text-slate-100 bg-gradient-to-r from-[#f79d00] to-[rgba(247,157,0,0.8)]">Get Started</button>
+            <Link href="/sign-in" className="text-slate-100 text-[16px] leading-[24px] h-10 px-4 rounded-[12px] hover:bg-white/5 transition-colors flex items-center">Login</Link>
+            <Link href="/sign-up" className="h-10 rounded-[12px] px-4 text-slate-100 bg-[#f79d00] hover:bg-[#f79d00]/90 transition-colors flex items-center">Get Started</Link>
           </nav>
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero Section */}
       <section className="mx-auto w-full max-w-[1063px] px-4">
         <div className="mx-auto mt-[128px] grid place-items-center" style={{ maxWidth: 896 }}>
           {/* badge */}
-          <div className="h-[38px] rounded-full border border-[#1e283d] bg-[rgba(247,157,0,0.2)] px-3 flex items-center gap-2">
-            <img src={imgBadge} alt="badge" className="h-4 w-4" />
+          <div className="h-[38px] rounded-full border border-[#1e283d] bg-[rgba(247,157,0,0.2)] px-3 flex items-center gap-2 w-fit">
+            <Image src={LightningIcon} alt="badge" width={16} height={16} className="h-4 w-4 shrink-0" />
             <span className="text-[14px] leading-[20px] text-[#f79d00]">AI-Powered Portfolio Management</span>
           </div>
 
@@ -54,10 +57,18 @@ export default function LandingResponsive() {
 
           {/* actions */}
           <div className="mt-[24px] flex items-center gap-4">
-            <button className="h-14 px-6 rounded-[12px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] bg-gradient-to-r from-[#f79d00] to-[rgba(247,157,0,0.8)] text-slate-100 text-[16px]">
+            <Link 
+              href="/sign-up" 
+              className="h-14 px-6 rounded-[12px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] bg-[#f79d00] hover:bg-[#f79d00]/90 text-[#f1f5f9] text-[16px] leading-[24px] flex items-center justify-center transition-colors font-normal whitespace-nowrap"
+            >
               Get Started
-            </button>
-            <button className="h-14 px-6 rounded-[12px] border border-[#1e283d] text-slate-100 text-[16px]">View Demo</button>
+            </Link>
+            <Link 
+              href="/dashboard" 
+              className="h-14 px-6 rounded-[12px] border border-[#1e283d] hover:bg-white/5 text-[#f1f5f9] text-[16px] leading-[24px] flex items-center justify-center transition-colors font-normal whitespace-nowrap"
+            >
+              View Demo
+            </Link>
           </div>
 
           {/* stats */}
@@ -79,7 +90,7 @@ export default function LandingResponsive() {
       </section>
 
       {/* Features */}
-      <section className="mt-[82px] border-t border-[#1e283d]">
+      <section className="mt-[81px] border-t border-[#1e283d]">
         <div className="mx-auto w-full max-w-[1024px] px-4 py-20">
           <div className="text-center">
             <h2 className="text-[30px] leading-[39px] text-slate-100 font-bold">Powerful Features for Professional Investors</h2>
@@ -89,23 +100,26 @@ export default function LandingResponsive() {
             </p>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-[1024px]">
             {[
-              { icon: icon1, title: "LSTM Stock Forecasts", desc: "Advanced neural networks predict future stock prices with high accuracy and confidence intervals." },
-              { icon: icon2, title: "Volatility Modeling", desc: "GARCH models quantify risk and volatility clustering for better risk management decisions." },
-              { icon: icon3, title: "Portfolio Optimization", desc: "Maximize Sharpe ratio with AI-driven asset allocation on the efficient frontier." },
-              { icon: icon4, title: "Efficient Frontier Visualization", desc: "Interactive charts reveal optimal risk-return trade-offs for your portfolio." },
-              { icon: icon5, title: "Risk-Adjusted Metrics", desc: "Comprehensive analytics including Sharpe, Sortino, Beta, Alpha, and Value-at-Risk." },
-              { icon: icon6, title: "Real-Time Market Data", desc: "Live quotes, heatmaps, and curated news feed from the Nairobi Securities Exchange." },
-            ].map((f) => (
-              <article key={f.title} className="rounded-[12px] border border-[#1e283d] bg-[#0f172b] p-6">
-                <div className="h-12 w-12 rounded-[12px] bg-[rgba(15,23,43,0.1)] grid place-items-center mb-4">
-                  <img src={f.icon} alt="" className="h-6 w-6" />
-                </div>
-                <h3 className="text-slate-100 text-[24px] leading-[33.6px] font-semibold mb-2">{f.title}</h3>
-                <p className="text-[#9398a1] text-[16px] leading-[24px]">{f.desc}</p>
-              </article>
-            ))}
+              { icon: TrendingUp, title: "LSTM Stock Forecasts", desc: "Advanced neural networks predict future stock prices with high accuracy and confidence intervals." },
+              { icon: Activity, title: "Volatility Modeling", desc: "GARCH models quantify risk and volatility clustering for better risk management decisions." },
+              { icon: PieChart, title: "Portfolio Optimization", desc: "Maximize Sharpe ratio with AI-driven asset allocation on the efficient frontier." },
+              { icon: LineChart, title: "Efficient Frontier Visualization", desc: "Interactive charts reveal optimal risk-return trade-offs for your portfolio." },
+              { icon: BarChart3, title: "Risk-Adjusted Metrics", desc: "Comprehensive analytics including Sharpe, Sortino, Beta, Alpha, and Value-at-Risk." },
+              { icon: Globe, title: "Real-Time Market Data", desc: "Live quotes, heatmaps, and curated news feed from the Nairobi Securities Exchange." },
+            ].map((f) => {
+              const IconComponent = f.icon;
+              return (
+                <article key={f.title} className="rounded-[12px] border border-[#1e283d] bg-[#0f172b] p-6 h-full">
+                  <div className="h-12 w-12 rounded-[12px] bg-[rgba(15,23,43,0.1)] grid place-items-center mb-4">
+                    <IconComponent className="h-6 w-6 text-slate-100" />
+                  </div>
+                  <h3 className="text-slate-100 text-[24px] leading-[33.6px] font-semibold mb-2">{f.title}</h3>
+                  <p className="text-[#9398a1] text-[16px] leading-[24px]">{f.desc}</p>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -118,17 +132,17 @@ export default function LandingResponsive() {
             <p className="text-[16px] leading-[24px] text-[#9398a1]">From data to decision in three simple steps</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-8">
             {[
               { n: "01", t: "Analyze & Forecast", d: "Run LSTM models to predict future stock prices and GARCH models to quantify volatility and risk." },
               { n: "02", t: "Optimize Portfolio", d: "Use AI-driven optimization to find the ideal asset allocation that maximizes your Sharpe ratio." },
               { n: "03", t: "Monitor & Rebalance", d: "Track performance with real-time metrics, alerts, and automated rebalancing recommendations." },
             ].map((s) => (
-              <div key={s.n} className="rounded-[12px] border border-[#1e283d] bg-[#0f172b] p-6 flex gap-6 items-center">
-                <div className="h-16 w-16 rounded-[12px] grid place-items-center">
+              <div key={s.n} className="rounded-[12px] border border-[#1e283d] bg-[#0f172b] p-6 flex gap-6 items-start">
+                <div className="h-16 w-16 rounded-[12px] grid place-items-center shrink-0">
                   <span className="text-slate-50 text-[24px] leading-[32px]">{s.n}</span>
                 </div>
-                <div>
+                <div className="flex flex-col gap-2">
                   <h3 className="text-slate-100 text-[24px] leading-[33.6px] font-semibold">{s.t}</h3>
                   <p className="text-[#9398a1] text-[16px] leading-[24px]">{s.d}</p>
                 </div>
@@ -140,15 +154,20 @@ export default function LandingResponsive() {
 
       {/* CTA */}
       <section className="border-t border-[#1e283d]">
-        <div className="mx-auto w-full max-w-[1024px] px-4 py-20">
-<div className="rounded-[16px] p-12 text-center bg-gradient-to-br from-[#2a2a7e] to-[#2a2a7eCC]">
-            <h2 className="text-primary-foreground text-[30px] leading-[39px] font-bold mb-2">
+        <div className="mx-auto w-full max-w-[1024px] px-[128px] py-20">
+          <div className="rounded-[16px] p-12 text-center bg-gradient-to-br from-[#2a2a7e] to-[#2a2a7eCC]">
+            <h2 className="text-slate-50 text-[30px] leading-[39px] font-bold mb-2">
               Ready to Transform Your Investment Strategy?
             </h2>
-            <p className="text-primary-foreground/90 text-[16px] leading-[24px] mb-6">
+            <p className="text-[rgba(248,250,252,0.9)] text-[16px] leading-[24px] mb-6 max-w-[647px] mx-auto">
               Join hundreds of investors, analysts, and portfolio managers using AI-powered insights to drive better returns.
             </p>
-            <button className="h-14 px-6 rounded-[12px] bg-white text-[#0f172b] text-[16px]">Start Free Trial</button>
+            <Link 
+              href="/sign-up" 
+              className="inline-flex items-center justify-center h-14 px-6 rounded-[12px] bg-white hover:bg-white/90 text-[#0f172b] text-[16px] leading-[24px] font-normal transition-colors whitespace-nowrap"
+            >
+              Start Free Trial
+            </Link>
           </div>
         </div>
       </section>
@@ -156,11 +175,11 @@ export default function LandingResponsive() {
       {/* Footer */}
       <footer className="border-t border-[#1e283d]">
         <div className="mx-auto w-full max-w-[1024px] px-4 h-[89px] flex items-center justify-between">
-          <p className="text-[#9398a1] text-[16px] leading-[24px]">© 2024 LSTM-GARCH Platform. All rights reserved.</p>
+          <p className="text-[#9398a1] text-[16px] leading-[24px]">© {new Date().getFullYear()} LSTM-GARCH Platform. All rights reserved.</p>
           <nav className="flex items-center gap-6 text-[#9398a1] text-[14px] leading-[20px]">
-            <button>Privacy Policy</button>
-            <button>Terms of Service</button>
-            <button>Contact</button>
+            <button className="hover:text-slate-100 transition-colors">Privacy Policy</button>
+            <button className="hover:text-slate-100 transition-colors">Terms of Service</button>
+            <button className="hover:text-slate-100 transition-colors">Contact</button>
           </nav>
         </div>
       </footer>

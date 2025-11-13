@@ -376,9 +376,19 @@ export async function verifyTwoFactorCode(
       },
     });
 
-    // Determine where to redirect based on passkey status
-    const hasPasskey = user.authenticators && user.authenticators.length > 0;
-    const redirectTo = hasPasskey ? "/verify-passkey" : "/setup-passkey";
+    // Get user role to determine redirect
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { role: true },
+    });
+
+    // For INVESTOR users, redirect directly to dashboard
+    // For other roles, check passkey status
+    const redirectTo = fullUser?.role === "INVESTOR" 
+      ? "/dashboard"
+      : (user.authenticators && user.authenticators.length > 0) 
+        ? "/verify-passkey" 
+        : "/setup-passkey";
 
     // Sign in the user with 2FA bypass and redirect
     await signIn("credentials", {

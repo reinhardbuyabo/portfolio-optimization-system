@@ -133,11 +133,19 @@ model Portfolio {
     createdAt     DateTime        @default(now())
     updatedAt     DateTime        @updatedAt
     status        PortfolioStatus @default(DRAFT)
+    
+    // Computed metrics
+    value           Float    @default(0.0)
+    expectedReturn  Float    @default(0.0)
+    sharpeRatio     Float    @default(0.0)
+    volatility      Float    @default(0.0)
+    holdingsCount   Int      @default(0)
 
     user        User                  @relation(fields: [userId], references: [id])
     allocations PortfolioAllocation[]
     results     OptimizationResult[]
     simulations Simulation[]
+    valuations  PortfolioValuation[]
 
     @@unique([userId, name])
 }
@@ -147,9 +155,14 @@ model PortfolioAllocation {
     portfolioId String @db.Uuid
     assetId     String @db.Uuid
     weight      Float
+    
+    // Computed metrics for individual holding
+    value           Float  @default(0.0)
+    expectedReturn  Float?
+    sharpeRatio     Float?
 
-    portfolio Portfolio @relation(fields: [portfolioId], references: [id])
-    asset     Asset     @relation(fields: [assetId], references: [id])
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+    asset     Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
 }
 
 model OptimizationResult {
@@ -228,4 +241,18 @@ model PredictionBatch {
     failureCount  Int      // Failed predictions
     totalTime     Float    // Total execution time in seconds
     createdAt     DateTime @default(now())
+}
+
+model PortfolioValuation {
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId  String   @db.Uuid
+    date         DateTime @default(now())
+    totalValue   Float
+    totalReturn  Float
+    sharpeRatio  Float
+    volatility   Float
+
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+    @@index([portfolioId, date])
 }

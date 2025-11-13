@@ -496,7 +496,7 @@ export default function StockAnalysisPage() {
                       <Line
                         type="monotone"
                         dataKey="predicted"
-                        stroke="#FACC15"
+                        stroke="#F79D00"
                         strokeWidth={3}
                         name="Predicted Price"
                         dot={false}
@@ -626,8 +626,8 @@ export default function StockAnalysisPage() {
                     <ComposedChart data={garchChartData}>
                       <defs>
                         <linearGradient id="colorVolatility" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#F79D00" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#F79D00" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
@@ -661,7 +661,7 @@ export default function StockAnalysisPage() {
                       <Area
                         type="monotone"
                         dataKey="volatility"
-                        stroke="#F59E0B"
+                        stroke="#F79D00"
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#colorVolatility)"

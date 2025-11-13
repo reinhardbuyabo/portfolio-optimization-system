@@ -66,7 +66,7 @@ export function PortfolioDialog({ portfolio, open, onClose, onEdit, onDelete, on
     displayValue: formatCurrency(h.value),
   }));
 
-  const COLORS = ["#FACC15", "#F97316", "#10B981", "#3B82F6", "#8B5CF6", "#EC4899"];
+  const COLORS = ["#F79D00", "#3B82F6", "#10B981", "#8B5CF6", "#EC4899", "#F97316"];
 
   const riskCategory = getRiskCategory(portfolio.volatility);
   const badgeClasses = riskBadgeClass(riskCategory);
@@ -291,7 +291,7 @@ export function PortfolioDialog({ portfolio, open, onClose, onEdit, onDelete, on
                       <YAxis type="number" dataKey="return" name="Return" unit="%" stroke="#9CA3AF" label={{ value: "Expected Return (%)", angle: -90, position: "insideLeft" }} />
                       <Tooltip cursor={{ strokeDasharray: "3 3" }} contentStyle={{ backgroundColor: "#1E1E2E", border: "1px solid #30333A", borderRadius: "8px" }} formatter={(value: number) => `${Number(value).toFixed(2)}%`} />
                       <Legend />
-                      <Scatter name="Efficient Frontier" data={efficientFrontierData} fill="#FACC15" line lineType="monotone" />
+                      <Scatter name="Efficient Frontier" data={efficientFrontierData} fill="#F79D00" line lineType="monotone" />
                       <Scatter name="Current Portfolio" data={[currentPortfolioPoint]} fill="#10B981" shape="star" />
                     </ScatterChart>
                   </ResponsiveContainer>

@@ -253,7 +253,7 @@ export function StockAnalysisModal({
                     <Tooltip contentStyle={{ backgroundColor: "#1E1E2E", border: "1px solid #30333A", borderRadius: "8px" }} formatter={(v: number) => formatCurrency(v)} />
                     <Legend />
                     <Line type="monotone" dataKey="actual" stroke="#10B981" name="Historical Price" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="predicted" stroke="#FACC15" name="LSTM Prediction" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    <Line type="monotone" dataKey="predicted" stroke="#F79D00" name="LSTM Prediction" strokeWidth={2} strokeDasharray="5 5" dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

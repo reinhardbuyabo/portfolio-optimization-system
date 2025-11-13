@@ -4,7 +4,6 @@ import {
   Bell,
   Settings,
   LogOut,
-  User as UserIcon,
   Menu,
   Moon,
   Sun,
@@ -136,10 +135,24 @@ export function Header({
                 </p>
               </div>
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <UserIcon
-                  className="w-5 h-5 text-primary-foreground"
-                  aria-hidden="true"
-                />
+                {(() => {
+                  const imageUrl = (user as any).image || (user as any).avatar;
+                  if (imageUrl && typeof imageUrl === "string" && imageUrl.trim().length > 0) {
+                    return (
+                      <img 
+                        src={imageUrl} 
+                        alt={user.name || "User"} 
+                        className="w-10 h-10 rounded-full object-cover" 
+                      />
+                    );
+                  }
+                  const initial = user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U";
+                  return (
+                    <span className="text-sm font-medium text-primary-foreground">
+                      {initial}
+                    </span>
+                  );
+                })()}
               </div>
             </div>
 

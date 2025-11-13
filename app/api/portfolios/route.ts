@@ -19,7 +19,32 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get("sortBy") || undefined;
 
     const portfolios = await getPortfoliosWithRelations({ investor, sortBy });
-    return NextResponse.json(portfolios);
+    
+    // Include allocations for each portfolio
+    const portfoliosWithAllocations = await Promise.all(
+      portfolios.map(async (portfolio) => {
+        const allocations = await prisma.portfolioAllocation.findMany({
+          where: { portfolioId: portfolio.id },
+          include: {
+            asset: {
+              select: {
+                id: true,
+                ticker: true,
+                name: true,
+                sector: true,
+              },
+            },
+          },
+        });
+
+        return {
+          ...portfolio,
+          allocations,
+        };
+      })
+    );
+    
+    return NextResponse.json(portfoliosWithAllocations);
   } catch (error: any) {
     console.error("GET /api/portfolios error:", error);
     return NextResponse.json(

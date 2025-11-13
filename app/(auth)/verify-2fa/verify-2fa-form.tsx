@@ -26,7 +26,7 @@ const Verify2FAForm = ({ email }: { email: string }) => {
   useEffect(() => {
     if (data?.success) {
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard");
       }, 1000);
     }
   }, [data?.success, router]);
@@ -48,7 +48,11 @@ const Verify2FAForm = ({ email }: { email: string }) => {
     const { pending } = useFormStatus();
 
     return (
-      <Button disabled={pending} className="w-full" variant="default">
+      <Button 
+        disabled={pending} 
+        className="w-full h-14 bg-gradient-to-r from-[#f79d00] to-[rgba(247,157,0,0.8)] hover:from-[rgba(247,157,0,0.9)] hover:to-[rgba(247,157,0,0.7)] text-slate-100 font-medium text-base rounded-xl border-0"
+        type="submit"
+      >
         {pending ? "Verifying..." : "Verify"}
       </Button>
     );
@@ -58,10 +62,12 @@ const Verify2FAForm = ({ email }: { email: string }) => {
     <form action={action}>
       <input type="hidden" name="email" value={email} />
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Verification Code */}
-        <div className="space-y-1">
-          <Label htmlFor="code">Verification Code</Label>
+        <div className="space-y-2">
+          <Label htmlFor="code" className="text-sm text-slate-100">
+            Verification Code
+          </Label>
           <Input
             type="text"
             id="code"
@@ -70,12 +76,12 @@ const Verify2FAForm = ({ email }: { email: string }) => {
             inputMode="numeric"
             pattern="\d*"
             maxLength={6}
-            placeholder="Enter 6-digit code"
+            placeholder="000000"
             autoComplete="one-time-code"
             autoFocus
-            className="text-center text-2xl tracking-widest"
+            className="h-[50px] bg-[#1e283d] border border-[#1e283d] text-slate-50 placeholder:text-slate-50/50 rounded-xl focus:border-[#1e283d] focus:ring-0 text-center text-2xl tracking-widest"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#9398a1]">
             Enter the 6-digit code sent to your email
           </p>
         </div>
@@ -87,14 +93,14 @@ const Verify2FAForm = ({ email }: { email: string }) => {
 
         {/* Success message */}
         {data && data.success && (
-          <div className="text-center text-green-600 dark:text-green-400">
+          <div className="text-center text-green-400 text-sm">
             {data.message}
           </div>
         )}
 
         {/* Error display */}
         {data && !data.success && data.message && (
-          <div className="text-center text-destructive">{data.message}</div>
+          <div className="text-center text-red-400 text-sm">{data.message}</div>
         )}
 
         {/* Resend Code */}
@@ -105,17 +111,18 @@ const Verify2FAForm = ({ email }: { email: string }) => {
             size="sm"
             disabled={resending}
             onClick={handleResendCode}
+            className="text-sm text-[#9398a1] hover:text-slate-100 hover:bg-[#1e283d]"
           >
             {resending ? "Resending..." : "Resend Code"}
           </Button>
           {resendMessage && (
-            <p className="text-xs text-muted-foreground">{resendMessage}</p>
+            <p className="text-xs text-[#9398a1]">{resendMessage}</p>
           )}
         </div>
 
         {/* Back to sign in */}
-        <div className="text-sm text-center text-muted-foreground">
-          <Link href="/sign-in" className="link">
+        <div className="text-sm text-center text-[#9398a1]">
+          <Link href="/sign-in" className="text-[#f79d00] hover:underline">
             Back to Sign In
           </Link>
         </div>

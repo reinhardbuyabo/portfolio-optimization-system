@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUp, Menu, Bell, Settings, LogOut, User as UserIcon } from "lucide-react";
+import { TrendingUp, Menu, Bell, Settings, LogOut } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
@@ -12,7 +11,6 @@ import { useSession } from "next-auth/react";
 export default function Header() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
-  const router = useRouter();
 
   const logout = async () => {
     await signOut({ callbackUrl: "/" });
@@ -20,6 +18,23 @@ export default function Header() {
 
   const user = session?.user;
   const isLoading = status === "loading";
+  const [imageError, setImageError] = useState(false);
+  
+  // Get first initial for avatar fallback
+  const getInitial = () => {
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
+  // Reset image error when user changes
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.image]);
 
   return (
     <header className="bg-card border-b border-border h-[70px] sticky top-0 z-50">
@@ -57,11 +72,18 @@ export default function Header() {
                 <p className="text-sm">{user.name || "User"}</p>
                 <p className="text-xs text-muted-foreground capitalize">{user.role || "investor"}</p>
               </div>
-              <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
-                {user.image ? (
-                  <img src={user.image} alt={user.name || "User"} className="w-9 h-9 rounded-full" />
+              <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center overflow-hidden">
+                {user.image && typeof user.image === "string" && user.image.trim().length > 0 && !imageError ? (
+                  <img 
+                    src={user.image} 
+                    alt={user.name || "User"} 
+                    className="w-full h-full object-cover" 
+                    onError={() => setImageError(true)}
+                  />
                 ) : (
-                  <UserIcon className="w-4 h-4 text-primary-foreground" />
+                  <span className="text-sm font-medium text-primary-foreground select-none">
+                    {getInitial()}
+                  </span>
                 )}
               </div>
             </div>

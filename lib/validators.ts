@@ -43,3 +43,15 @@ export const updatePortfolioAllocationsSchema = z.array(z.object({
 }, {
   message: "The sum of all asset weights must be 100%.",
 });
+
+// Schema for creating a portfolio with stocks (used in API routes)
+export const portfolioSchema = z.object({
+  name: z.string().min(3, "Portfolio name must be at least 3 characters"),
+  riskTolerance: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  targetReturn: z.number().min(0, "Target return must be at least 0").max(1, "Target return must be at most 1"),
+  userId: z.string().uuid().optional(),
+  stocks: z.array(z.object({
+    ticker: z.string().min(1, "Ticker is required"),
+    weight: z.number().min(0).max(1),
+  })).optional(),
+});
