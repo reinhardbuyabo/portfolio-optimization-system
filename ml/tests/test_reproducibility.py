@@ -1,5 +1,5 @@
 import numpy as np
-from train_pipeline import run_training
+from ml.train_pipeline import run_training
 from processing.data_manager import load_pipeline
 from config.core import settings
 

@@ -6,7 +6,7 @@ import time
 import asyncio
 from typing import List
 
-from pipeline.garch_model import forecast_garch_volatility
+from pipeline.garch_model import predict_next_day_volatility
 from ..models.schemas import (
     GARCHVolatilityRequest,
     GARCHVolatilityResponse,
@@ -24,15 +24,18 @@ def _compute_garch_prediction(req: GARCHVolatilityRequest) -> dict:
         if not req.log_returns:
             raise ValueError("log_returns cannot be empty")
         series = pd.Series(req.log_returns)
-        eval_df = forecast_garch_volatility(series_original=series, train_frac=req.train_frac, verbose=False)
-        if eval_df.empty:
-            raise ValueError("Insufficient data for forecasting")
-        last = eval_df.iloc[-1]
+        
+        # Use the new efficient function
+        forecasted_variance = predict_next_day_volatility(
+            series_original=series, 
+            verbose=False
+        )
+        
         exec_time = time.perf_counter() - start
         return GARCHVolatilityResponse(
             symbol=req.symbol,
-            forecasted_variance=float(last['forecasted_variance']),
-            realized_variance=float(last['realized_variance']),
+            forecasted_variance=forecasted_variance,
+            realized_variance=None,  # This is no longer calculated
             execution_time=exec_time,
         ).dict()
     except Exception as e:

@@ -47,7 +47,6 @@ class GARCHVolatilityRequest(BaseModel):
 class GARCHVolatilityResponse(BaseModel):
     symbol: str
     forecasted_variance: float
-    realized_variance: Optional[float] = None
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     execution_time: float
 

@@ -2,7 +2,7 @@ import time
 import numpy as np
 from fastapi.testclient import TestClient
 from loguru import logger
-from ml.api.main import app
+from api.main import app
 
 client = TestClient(app)
 

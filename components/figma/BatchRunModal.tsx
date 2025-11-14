@@ -10,11 +10,11 @@ import { TrendingUp, Loader2, CheckCircle2, XCircle } from "lucide-react";
 interface BatchRunModalProps {
   open: boolean;
   onClose: () => void;
+  portfolios: UIPortfolio[];
 }
 
-export function BatchRunModal({ open, onClose }: BatchRunModalProps) {
+export function BatchRunModal({ open, onClose, portfolios }: BatchRunModalProps) {
   const router = useRouter();
-  const [portfolios, setPortfolios] = useState<UIPortfolio[]>([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState<{
@@ -25,80 +25,55 @@ export function BatchRunModal({ open, onClose }: BatchRunModalProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) {
-      loadPortfolios();
+    if (!open) {
+      // Reset state when modal is closed
+      setIsRunning(false);
+      setError(null);
+      setProgress(null);
+      setSelectedPortfolio(null);
     }
   }, [open]);
-
-  const loadPortfolios = () => {
-    try {
-      const raw = localStorage.getItem("uiPortfolios");
-      const loaded = raw ? (JSON.parse(raw) as UIPortfolio[]) : [];
-      setPortfolios(loaded);
-    } catch (err) {
-      console.error("Failed to load portfolios:", err);
-      setPortfolios([]);
-    }
-  };
 
   const runBatchPrediction = async (portfolio: UIPortfolio) => {
     setSelectedPortfolio(portfolio.id);
     setIsRunning(true);
     setError(null);
-    setProgress({ current: 0, total: portfolio.holdings.length });
+    setProgress({ current: 0, total: 100 });
 
     try {
-      // Extract unique symbols from holdings
       const symbols = portfolio.holdings.map(h => h.symbol);
       
-      // Step 1: Prepare data
-      setProgress({ current: 1, total: portfolio.holdings.length + 2, currentSymbol: "Preparing data..." });
+      setProgress({ current: 25, total: 100, currentSymbol: "Running ML models..." });
       
-      const prepareRes = await fetch("/api/ml/prepare-data", {
+      const predictRes = await fetch("/api/ml/batch/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbols }),
-      });
-
-      if (!prepareRes.ok) {
-        const errorData = await prepareRes.json();
-        throw new Error(errorData.error || "Failed to prepare data");
-      }
-
-      const preparedData = await prepareRes.json();
-
-      // Step 2: Run predictions
-      setProgress({ current: 2, total: portfolio.holdings.length + 2, currentSymbol: "Running ML models..." });
-      
-      const predictRes = await fetch("/api/ml/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(preparedData),
+        body: JSON.stringify({ symbols, horizon: 1 }), // Default horizon of 1 day
       });
 
       if (!predictRes.ok) {
         const errorData = await predictRes.json();
-        throw new Error(errorData.error || "Prediction failed");
+        throw new Error(errorData.detail || "Prediction failed");
       }
 
       const predictions = await predictRes.json();
 
-      // Step 3: Store predictions in session storage
+      setProgress({ current: 75, total: 100, currentSymbol: "Storing results..." });
+
       sessionStorage.setItem(
         `portfolio_predictions_${portfolio.id}`,
         JSON.stringify({
           portfolioId: portfolio.id,
-          predictions: predictions.predictions,
+          predictions: predictions.results,
           timestamp: new Date().toISOString(),
         })
       );
 
-      // Success! Navigate to portfolio details
-      setProgress({ current: portfolio.holdings.length + 2, total: portfolio.holdings.length + 2, currentSymbol: "Complete!" });
+      setProgress({ current: 100, total: 100, currentSymbol: "Complete!" });
       
       setTimeout(() => {
         onClose();
-        router.push(`/new/portfolios/${portfolio.id}?mlPredictions=true`);
+        router.push(`/portfolios/${portfolio.id}?mlPredictions=true`);
       }, 1000);
 
     } catch (err: any) {
@@ -162,7 +137,7 @@ export function BatchRunModal({ open, onClose }: BatchRunModalProps) {
 
         {!isRunning && (
           <div className="space-y-3">
-            {portfolios.length === 0 ? (
+            {portfolios && portfolios.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">No portfolios found</p>
                 <button
@@ -176,7 +151,7 @@ export function BatchRunModal({ open, onClose }: BatchRunModalProps) {
                 </button>
               </div>
             ) : (
-              portfolios.map((portfolio) => (
+              portfolios?.map((portfolio) => (
                 <div
                   key={portfolio.id}
                   className="bg-card border border-border rounded-lg p-4 hover:border-chart-1/50 transition-all cursor-pointer"
@@ -220,7 +195,7 @@ export function BatchRunModal({ open, onClose }: BatchRunModalProps) {
           </div>
         )}
 
-        {!isRunning && portfolios.length > 0 && (
+        {!isRunning && portfolios && portfolios.length > 0 && (
           <div className="flex justify-end gap-2 pt-4 border-t border-border">
             <button
               onClick={onClose}

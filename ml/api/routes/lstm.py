@@ -17,48 +17,59 @@ router = APIRouter()
 
 
 def _compute_lstm_prediction(preprocessor, pipeline, req: LSTMPredictionRequest) -> dict:
+    """
+    Computes a single LSTM prediction.
+
+    Args:
+        preprocessor: The fitted DataPreprocessor object.
+        pipeline: The trained Keras pipeline.
+        req: The prediction request.
+
+    Returns:
+        A dictionary containing the prediction response or an error.
+    """
     start = time.perf_counter()
     try:
         input_df = pd.DataFrame(req.data)
         if 'Day Price' not in input_df.columns:
             raise ValueError("Input must include 'Day Price' column")
 
-        # Get original prices before processing
         original_prices = input_df['Day Price'].values
-        price_min = float(np.min(original_prices))
-        price_max = float(np.max(original_prices))
         
-        # Create a per-request scaler fitted on THIS stock's input data
-        from sklearn.preprocessing import MinMaxScaler
-        request_scaler = MinMaxScaler(feature_range=(0, 1))
-        request_scaled = request_scaler.fit_transform(original_prices.reshape(-1, 1))
+        # Use the globally fitted scaler from the preprocessor
+        scaled_prices = preprocessor.scaler.transform(original_prices.reshape(-1, 1))
         
-        # Process with original preprocessor for feature engineering
-        processed = preprocessor.transform(input_df.copy())
+        # The preprocessor might do more than just scaling, but here we only need the scaled prices
+        # for the LSTM sequence.
         prediction_days = req.prediction_days
-        
-        # Use the request scaler's output instead of preprocessor's scaler
-        scaled = request_scaled.reshape(-1, 1)
-        if len(scaled) < prediction_days:
-            raise ValueError(f"Require at least {prediction_days} samples")
+        if len(scaled_prices) < prediction_days:
+            raise ValueError(f"Require at least {prediction_days} samples for prediction")
 
-        seq = scaled[-prediction_days:].reshape(1, prediction_days, 1)
-        pred = pipeline.predict(seq, verbose=0)
-        prediction_scaled = float(pred.ravel()[0])
+        # Create sequence from the end of the data
+        sequence = scaled_prices[-prediction_days:].reshape(1, prediction_days, 1)
         
-        # Inverse transform using the request-specific scaler
-        prediction_actual = request_scaler.inverse_transform([[prediction_scaled]])[0][0]
+        # Make prediction
+        prediction_scaled = pipeline.predict(sequence, verbose=0).ravel()[0]
+        
+        # Inverse transform the prediction to get the actual price
+        prediction_actual = preprocessor.scaler.inverse_transform([[prediction_scaled]])[0][0]
         
         exec_time = time.perf_counter() - start
+        
+        # Get price range from the original, unscaled data for context
+        price_min = float(np.min(original_prices))
+        price_max = float(np.max(original_prices))
+
         return LSTMPredictionResponse(
             symbol=req.symbol,
-            prediction=prediction_actual,
-            prediction_scaled=prediction_scaled,
+            prediction=float(prediction_actual),
+            prediction_scaled=float(prediction_scaled),
             price_range={'min': price_min, 'max': price_max},
             execution_time=exec_time
         ).dict()
     except Exception as e:
         exec_time = time.perf_counter() - start
+        logger.error(f"Error during prediction for {req.symbol}: {e}")
         return ErrorResponse(error="prediction_failed", detail=str(e), execution_time=exec_time).dict()
 
 

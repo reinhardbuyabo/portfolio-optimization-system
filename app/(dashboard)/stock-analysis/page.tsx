@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { formatCurrency, formatPercent, formatNumber } from "@/lib/utils";
+import { calculateSharpeRatio } from "@/lib/financial-metrics";
 import {
   TrendingUp,
   Activity,
@@ -64,7 +65,7 @@ export default function StockAnalysisPage() {
   const [availableStocks, setAvailableStocks] = useState<Stock[]>([]);
   const [loadingStocks, setLoadingStocks] = useState(true);
   const [stocksBySector, setStocksBySector] = useState<{ [sector: string]: Stock[] }>({});
-  const [predictionHorizon, setPredictionHorizon] = useState<PredictionHorizon>('1M');
+  const [predictionHorizon, setPredictionHorizon] = useState<PredictionHorizon>('1D');
 
   const stock = availableStocks.find((s) => s.code === selectedStock) || availableStocks[0];
   const forecastDays = HORIZON_DAYS[predictionHorizon];
@@ -147,41 +148,54 @@ export default function StockAnalysisPage() {
     setPredictionResult(null);
 
     try {
-      // Step 1: Prepare data
-      const prepareRes = await fetch("/api/ml/prepare-data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbols: [selectedStock] }),
-      });
+      const requestBody = {
+        symbol: selectedStock,
+        horizon: forecastDays,
+        data: historicalData.map(p => ({ "Day Price": p.price }))
+      };
 
-      if (!prepareRes.ok) {
-        const errorData = await prepareRes.json();
-        throw new Error(errorData.error || "Failed to prepare data");
-      }
-
-      const preparedData = await prepareRes.json();
-
-      // Step 2: Run prediction
-      const predictRes = await fetch("/api/ml/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(preparedData),
-      });
-
-      if (!predictRes.ok) {
-        const errorData = await predictRes.json();
-        throw new Error(errorData.error || "Prediction failed");
-      }
-
-      const result = await predictRes.json();
-
-      // Update state with real predictions
-      if (result.predictions && result.predictions.length > 0) {
-        setPredictionResult(result.predictions[0]);
-        setHasResults(true);
+      let endpoint = "";
+      if (activeTab === 'lstm') {
+        endpoint = "/api/ml/lstm/predict";
+      } else if (activeTab === 'garch') {
+        endpoint = "/api/ml/garch/predict";
       } else {
-        throw new Error("No predictions returned");
+        throw new Error("Invalid model type selected");
       }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Prediction failed");
+      }
+
+      const result = await response.json();
+      
+      // The structure of the result will be different for single predictions
+      // We need to combine them into the CombinedPrediction format
+      const combinedResult: CombinedPrediction = {
+        symbol: selectedStock,
+        lstm: activeTab === 'lstm' ? result : null,
+        garch: activeTab === 'garch' ? result : null,
+      };
+
+      // If we already have a result, merge them
+      setPredictionResult(prev => {
+        if (prev) {
+          return {
+            ...prev,
+            ...combinedResult
+          }
+        }
+        return combinedResult;
+      });
+
+      setHasResults(true);
     } catch (err: any) {
       console.error("Prediction failed:", err);
       setError(err.message || "Failed to run prediction");
@@ -190,8 +204,45 @@ export default function StockAnalysisPage() {
     }
   };
 
-  const handleBatchRun = () => {
-    setShowBatchModal(true);
+  const [userPortfolios, setUserPortfolios] = useState<any[]>([]);
+  const [loadingPortfolios, setLoadingPortfolios] = useState(true);
+
+  // Fetch user's portfolios
+  useEffect(() => {
+    const fetchUserPortfolios = async () => {
+      try {
+        setLoadingPortfolios(true);
+        const response = await fetch('/api/portfolios');
+        if (!response.ok) {
+          throw new Error('Failed to fetch user portfolios');
+        }
+        const result = await response.json();
+        setUserPortfolios(result.data);
+      } catch (error) {
+        console.error('Error fetching user portfolios:', error);
+        // Handle error, maybe show a toast
+      } finally {
+        setLoadingPortfolios(false);
+      }
+    };
+    fetchUserPortfolios();
+  }, []);
+
+  const handleBatchRun = async () => {
+    if (userPortfolios.length > 0) {
+      // For simplicity, let's use the first portfolio's assets
+      // In a real app, you might let the user choose a portfolio
+      const portfolioAssets = userPortfolios[0]?.assets.map((a: any) => a.symbol) || [];
+      if (portfolioAssets.length > 0) {
+        // Here you would pass the assets to the modal or the batch run logic
+        console.log("Running batch for assets:", portfolioAssets);
+        setShowBatchModal(true);
+      } else {
+        setError("The selected portfolio has no assets to run predictions on.");
+      }
+    } else {
+      setError("You don't have any portfolios to run a batch prediction. Please create one first.");
+    }
   };
 
   // Chart data: Historical + Prediction
@@ -295,7 +346,11 @@ export default function StockAnalysisPage() {
 
   return (
     <div className="container py-6 space-y-6">
-      <BatchRunModal open={showBatchModal} onClose={() => setShowBatchModal(false)} />
+      <BatchRunModal 
+        open={showBatchModal} 
+        onClose={() => setShowBatchModal(false)}
+        portfolios={userPortfolios} 
+      />
       
       <div>
         <h1>Stock Analysis: LSTM & GARCH Models</h1>
@@ -450,7 +505,7 @@ export default function StockAnalysisPage() {
                   {hasResults && predictionResult?.lstm && (
                     <>
                       <p className="text-sm font-medium text-chart-1 mt-1">
-                        Predicted: {formatCurrency(predictionResult.lstm.prediction)} at {predictionHorizon} ({HORIZON_DAYS[predictionHorizon]} days)
+                        Predicted: {formatCurrency(predictionResult.lstm.prediction)} at {predictionHorizon} ({predictionResult.lstm.horizon} days)
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
                         <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />

@@ -16,6 +16,7 @@ export interface LSTMPredictionResponse {
     max: number;
   };
   execution_time: number;
+  horizon: number;
 }
 
 export interface LSTMBatchRequest {
