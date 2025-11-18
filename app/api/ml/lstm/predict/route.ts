@@ -41,7 +41,11 @@ export async function POST(request: NextRequest) {
     }
 
     const prediction = await response.json();
-    return NextResponse.json(prediction);
+    // Add horizon to the response so frontend knows what timeframe the prediction is for
+    return NextResponse.json({
+      ...prediction,
+      horizon: horizon || 60, // Include the horizon in the response
+    });
 
   } catch (error: any) {
     console.error('LSTM prediction error:', error);

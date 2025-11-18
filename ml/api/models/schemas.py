@@ -21,6 +21,7 @@ class LSTMPredictionResponse(BaseModel):
     prediction: float  # Actual price (inverse-transformed)
     prediction_scaled: float  # Scaled value (0-1)
     price_range: Dict[str, float]  # {'min': ..., 'max': ...}
+    horizon: int  # Number of days ahead for this prediction
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     execution_time: float
 
@@ -47,6 +48,7 @@ class GARCHVolatilityRequest(BaseModel):
 class GARCHVolatilityResponse(BaseModel):
     symbol: str
     forecasted_variance: float
+    volatility_annualized: float  # sqrt(variance * 252)
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     execution_time: float
 

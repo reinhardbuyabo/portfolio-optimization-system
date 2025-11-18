@@ -27,10 +27,14 @@ export async function POST(request: NextRequest) {
 
     const { name, riskTolerance, targetReturn, stocks = [] } = validated.data;
 
-    // Normalize weights if stocks are provided
+    // Apply equal weighting to all stocks
     let normalizedStocks = stocks;
     if (stocks.length > 0) {
-      normalizedStocks = normalizeWeights(stocks);
+      const equalWeight = 1.0 / stocks.length;
+      normalizedStocks = stocks.map(stock => ({
+        ...stock,
+        weight: equalWeight,
+      }));
     }
 
     // Get or create assets for each ticker

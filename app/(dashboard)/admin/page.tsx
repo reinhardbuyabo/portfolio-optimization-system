@@ -192,12 +192,13 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2">
                 {systemLogs.map((log) => {
-                  const levelColor = {
+                  const levelColorMap = {
                     info: "text-info bg-info/10 border-info/30",
                     success: "text-success bg-success/10 border-success/30",
                     warning: "text-warning bg-warning/10 border-warning/30",
                     error: "text-destructive bg-destructive/10 border-destructive/30",
-                  }[log.level as keyof any];
+                  };
+                  const levelColor = levelColorMap[log.level as keyof typeof levelColorMap] || "text-muted-foreground";
                   return (
                     <div key={log.id} className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
                       <span className={`px-2 py-1 rounded text-xs uppercase border ${levelColor}`}>{log.level}</span>

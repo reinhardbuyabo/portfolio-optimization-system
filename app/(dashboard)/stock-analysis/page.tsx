@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { formatCurrency, formatPercent, formatNumber } from "@/lib/utils";
 import { calculateSharpeRatio } from "@/lib/financial-metrics";
+import { toast } from "sonner";
 import {
   TrendingUp,
   Activity,
@@ -148,6 +149,23 @@ export default function StockAnalysisPage() {
     setPredictionResult(null);
 
     try {
+      // Validation: Check if we have historical data
+      if (!historicalData || historicalData.length === 0) {
+        toast.error("No historical data available", {
+          description: "Please select a stock with available price data"
+        });
+        return;
+      }
+
+      // Validation: Check minimum data points
+      const minDataPoints = activeTab === 'garch' ? 30 : 60;
+      if (historicalData.length < minDataPoints) {
+        toast.error(`Insufficient data for ${activeTab.toUpperCase()}`, {
+          description: `Need at least ${minDataPoints} days of data, have ${historicalData.length}`
+        });
+        return;
+      }
+
       const requestBody = {
         symbol: selectedStock,
         horizon: forecastDays,
@@ -155,13 +173,18 @@ export default function StockAnalysisPage() {
       };
 
       let endpoint = "";
+      let modelName = "";
       if (activeTab === 'lstm') {
         endpoint = "/api/ml/lstm/predict";
+        modelName = "LSTM";
       } else if (activeTab === 'garch') {
         endpoint = "/api/ml/garch/predict";
+        modelName = "GARCH";
       } else {
         throw new Error("Invalid model type selected");
       }
+
+      toast.loading(`Running ${modelName} model...`, { id: 'prediction' });
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -171,10 +194,36 @@ export default function StockAnalysisPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Prediction failed");
+        const errorMessage = errorData.detail || "Prediction failed";
+        
+        toast.error(`${modelName} prediction failed`, {
+          id: 'prediction',
+          description: errorMessage
+        });
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      
+      // Validate result data
+      if (activeTab === 'lstm') {
+        if (!result.prediction || !isFinite(result.prediction)) {
+          toast.error("Invalid LSTM prediction", {
+            id: 'prediction',
+            description: "The model returned invalid price prediction"
+          });
+          throw new Error("Invalid LSTM prediction received");
+        }
+      } else if (activeTab === 'garch') {
+        if (!result.volatility_annualized || !isFinite(result.volatility_annualized)) {
+          toast.error("Invalid GARCH forecast", {
+            id: 'prediction',
+            description: "The model returned invalid volatility forecast"
+          });
+          throw new Error("Invalid GARCH forecast received");
+        }
+      }
       
       // The structure of the result will be different for single predictions
       // We need to combine them into the CombinedPrediction format
@@ -196,9 +245,32 @@ export default function StockAnalysisPage() {
       });
 
       setHasResults(true);
+      
+      // Success toast
+      if (activeTab === 'lstm') {
+        toast.success("LSTM prediction complete", {
+          id: 'prediction',
+          description: `Predicted price: ${formatCurrency(result.prediction)}`
+        });
+      } else {
+        toast.success("GARCH forecast complete", {
+          id: 'prediction',
+          description: `Volatility: ${formatPercent(result.volatility_annualized * 100)}`
+        });
+      }
+      
     } catch (err: any) {
       console.error("Prediction failed:", err);
-      setError(err.message || "Failed to run prediction");
+      const errorMessage = err.message || "Failed to run prediction";
+      setError(errorMessage);
+      
+      // Only show toast if we haven't already shown one
+      if (!err.message?.includes("Invalid")) {
+        toast.error("Prediction error", {
+          id: 'prediction',
+          description: errorMessage
+        });
+      }
     } finally {
       setIsRunning(false);
     }
@@ -217,10 +289,11 @@ export default function StockAnalysisPage() {
           throw new Error('Failed to fetch user portfolios');
         }
         const result = await response.json();
-        setUserPortfolios(result.data);
+        // API returns portfolios directly, not wrapped in a data property
+        setUserPortfolios(Array.isArray(result) ? result : []);
       } catch (error) {
         console.error('Error fetching user portfolios:', error);
-        // Handle error, maybe show a toast
+        setUserPortfolios([]);
       } finally {
         setLoadingPortfolios(false);
       }
@@ -229,19 +302,30 @@ export default function StockAnalysisPage() {
   }, []);
 
   const handleBatchRun = async () => {
-    if (userPortfolios.length > 0) {
-      // For simplicity, let's use the first portfolio's assets
+    if (userPortfolios && userPortfolios.length > 0) {
+      // For simplicity, let's use the first portfolio's allocations
       // In a real app, you might let the user choose a portfolio
-      const portfolioAssets = userPortfolios[0]?.assets.map((a: any) => a.symbol) || [];
+      const portfolioAssets = userPortfolios[0]?.allocations?.map((a: any) => a.asset.ticker) || [];
       if (portfolioAssets.length > 0) {
         // Here you would pass the assets to the modal or the batch run logic
         console.log("Running batch for assets:", portfolioAssets);
+        toast.info("Starting batch predictions", {
+          description: `Running predictions for ${portfolioAssets.length} stocks`
+        });
         setShowBatchModal(true);
       } else {
-        setError("The selected portfolio has no assets to run predictions on.");
+        const errorMsg = "The selected portfolio has no assets to run predictions on.";
+        setError(errorMsg);
+        toast.error("No assets in portfolio", {
+          description: "Add stocks to your portfolio first"
+        });
       }
     } else {
-      setError("You don't have any portfolios to run a batch prediction. Please create one first.");
+      const errorMsg = "You don't have any portfolios to run a batch prediction. Please create one first.";
+      setError(errorMsg);
+      toast.error("No portfolios found", {
+        description: "Create a portfolio before running batch predictions"
+      });
     }
   };
 
@@ -268,23 +352,39 @@ export default function StockAnalysisPage() {
     // Add prediction if available
     if (predictionResult?.lstm && hasResults && currentPrice) {
       const prediction = predictionResult.lstm.prediction;
+      const horizonDays = predictionResult.lstm.horizon || forecastDays;
       
-      // Add 30-day forecast
-      for (let i = 1; i <= 30; i++) {
+      // Validate prediction values
+      if (!prediction || isNaN(prediction) || !isFinite(prediction)) {
+        console.warn('Invalid LSTM prediction value');
+        return chartPoints;
+      }
+      
+      if (!horizonDays || horizonDays <= 0) {
+        console.warn('Invalid horizon days');
+        return chartPoints;
+      }
+      
+      // Add forecast points up to the horizon
+      for (let i = 1; i <= horizonDays; i++) {
         const date = new Date();
         date.setDate(date.getDate() + i);
         
-        const progress = i / 30;
+        const progress = i / horizonDays;
         const interpolatedPrice = currentPrice + (prediction - currentPrice) * progress;
         const confidenceRange = interpolatedPrice * 0.05;
         
-        chartPoints.push({
-          date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-          predicted: interpolatedPrice,
-          lower: interpolatedPrice - confidenceRange,
-          upper: interpolatedPrice + confidenceRange,
-          isHistorical: false,
-        });
+        // Only add if all values are valid
+        if (!isNaN(interpolatedPrice) && isFinite(interpolatedPrice) &&
+            !isNaN(confidenceRange) && isFinite(confidenceRange)) {
+          chartPoints.push({
+            date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            predicted: interpolatedPrice,
+            lower: interpolatedPrice - confidenceRange,
+            upper: interpolatedPrice + confidenceRange,
+            isHistorical: false,
+          });
+        }
       }
     }
 
@@ -299,6 +399,12 @@ export default function StockAnalysisPage() {
 
     const points: any[] = [];
     const forecastedVolatility = predictionResult.garch.volatility_annualized;
+    
+    // Validate forecasted volatility
+    if (!forecastedVolatility || isNaN(forecastedVolatility)) {
+      console.warn('Invalid GARCH forecasted volatility');
+      return [];
+    }
     
     // Calculate historical realized volatility (rolling 30-day)
     const windowSize = 30;
@@ -320,11 +426,14 @@ export default function StockAnalysisPage() {
         const dailyVol = Math.sqrt(variance);
         const annualizedVol = dailyVol * Math.sqrt(252); // Annualize
         
-        points.push({
-          date: historicalData[i].date,
-          volatility: annualizedVol * 100,
-          type: 'historical'
-        });
+        // Only add if valid
+        if (!isNaN(annualizedVol) && isFinite(annualizedVol)) {
+          points.push({
+            date: historicalData[i].date,
+            volatility: annualizedVol * 100,
+            type: 'historical'
+          });
+        }
       }
     }
     

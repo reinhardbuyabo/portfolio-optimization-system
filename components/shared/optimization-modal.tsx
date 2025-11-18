@@ -83,7 +83,7 @@ export function OptimizationModal({ isOpen, onClose, results, portfolioId }: Opt
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-7xl w-[95vw]">
         <DialogHeader>
           <DialogTitle>Optimization Results</DialogTitle>
           <DialogDescription>

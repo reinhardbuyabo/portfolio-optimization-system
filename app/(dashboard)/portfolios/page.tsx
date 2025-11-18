@@ -73,8 +73,8 @@ export default function PortfoliosPage() {
       }
       const data = await res.json();
       setPortfolios(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      setError(err.message || "Failed to load portfolios");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load portfolios");
     } finally {
       setLoading(false);
     }

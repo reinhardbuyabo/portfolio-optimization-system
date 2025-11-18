@@ -166,13 +166,14 @@ model PortfolioAllocation {
 }
 
 model OptimizationResult {
-    id                 String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    portfolioId        String @db.Uuid
+    id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId        String   @db.Uuid
     expectedReturn     Float
     expectedVolatility Float
     sharpeRatio        Float
     sortinoRatio       Float
     maxDrawdown        Float
+    createdAt          DateTime @default(now())
 
     portfolio Portfolio @relation(fields: [portfolioId], references: [id])
 }

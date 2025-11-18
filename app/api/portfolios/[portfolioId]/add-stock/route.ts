@@ -97,43 +97,44 @@ export async function POST(
       weight: alloc.weight,
     }));
 
-    // If weight is provided, use it; otherwise distribute equally
-    const newWeight = weight ?? 1 / (allAllocations.length + 1);
+    // Add new stock with equal weight distribution
+    const totalAssets = allAllocations.length + 1;
+    const equalWeight = 1 / totalAssets;
+    
     allAllocations.push({
       assetId: asset.id,
-      weight: newWeight,
+      weight: equalWeight,
     });
 
-    // Normalize weights
-    const normalized = normalizeWeights(
-      allAllocations.map((alloc) => ({
-        ticker: portfolio.allocations.find((a) => a.assetId === alloc.assetId)?.asset.ticker || ticker,
-        weight: alloc.weight,
-      }))
-    );
-
-    // Map back to allocations with assetIds
-    const normalizedAllocations = allAllocations.map((alloc, idx) => {
-      const normalizedWeight = normalized.find(
-        (n) =>
-          n.ticker ===
-          (portfolio.allocations.find((a) => a.assetId === alloc.assetId)?.asset.ticker || ticker)
-      )?.weight ?? normalized[idx]?.weight ?? 0;
-
-      return {
-        assetId: alloc.assetId,
-        weight: normalizedWeight,
-      };
-    });
+    // Apply equal weighting to all allocations (rebalance with equal weights)
+    const normalizedAllocations = allAllocations.map((alloc) => ({
+      assetId: alloc.assetId,
+      weight: equalWeight,
+    }));
 
     // Recompute portfolio metrics
     const metrics = await computePortfolioMetrics(normalizedAllocations);
 
+    // Get latest price for new stock (outside transaction to allow HTTP calls)
+    let latestPriceForNewStock = await getLatestClosePriceByTicker(ticker);
+    
+    // If no price data exists in DB, try to fetch from historical API
+    if (!latestPriceForNewStock) {
+      try {
+        const priceResponse = await fetch(`${request.nextUrl.origin}/api/stocks/historical?symbol=${ticker}&days=1`);
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          latestPriceForNewStock = priceData.latestPrice || null;
+        }
+      } catch (fetchError) {
+        console.warn(`Could not fetch price for ${ticker}:`, fetchError);
+      }
+    }
+
     // Update portfolio and allocations in transaction
     const updatedPortfolio = await prisma.$transaction(async (tx) => {
       // Create new allocation
-      const latestPrice = await getLatestClosePriceByTicker(ticker);
-      const holdingValue = latestPrice ? metrics.value * (normalizedAllocations.find((a) => a.assetId === asset.id)?.weight ?? 0) : 0;
+      const holdingValue = latestPriceForNewStock ? metrics.value * (normalizedAllocations.find((a) => a.assetId === asset.id)?.weight ?? 0) : 0;
 
       await tx.portfolioAllocation.create({
         data: {

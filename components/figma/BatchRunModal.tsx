@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { UIPortfolio } from "@/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { formatNumber } from "@/lib/utils";
@@ -10,7 +11,7 @@ import { TrendingUp, Loader2, CheckCircle2, XCircle } from "lucide-react";
 interface BatchRunModalProps {
   open: boolean;
   onClose: () => void;
-  portfolios: UIPortfolio[];
+  portfolios: any[]; // Accept any portfolio structure with allocations
 }
 
 export function BatchRunModal({ open, onClose, portfolios }: BatchRunModalProps) {
@@ -34,14 +35,29 @@ export function BatchRunModal({ open, onClose, portfolios }: BatchRunModalProps)
     }
   }, [open]);
 
-  const runBatchPrediction = async (portfolio: UIPortfolio) => {
+  const runBatchPrediction = async (portfolio: any) => {
     setSelectedPortfolio(portfolio.id);
     setIsRunning(true);
     setError(null);
     setProgress({ current: 0, total: 100 });
 
     try {
-      const symbols = portfolio.holdings.map(h => h.symbol);
+      // Extract symbols from allocations
+      const symbols = portfolio.allocations?.map((a: any) => a.asset.ticker) || [];
+      
+      if (symbols.length === 0) {
+        const errorMsg = "Portfolio has no assets to run predictions on";
+        setError(errorMsg);
+        toast.error("No assets in portfolio", {
+          description: errorMsg
+        });
+        setIsRunning(false);
+        return;
+      }
+      
+      toast.loading(`Running predictions for ${symbols.length} stocks...`, {
+        id: 'batch-prediction'
+      });
       
       setProgress({ current: 25, total: 100, currentSymbol: "Running ML models..." });
       
@@ -53,10 +69,26 @@ export function BatchRunModal({ open, onClose, portfolios }: BatchRunModalProps)
 
       if (!predictRes.ok) {
         const errorData = await predictRes.json();
-        throw new Error(errorData.detail || "Prediction failed");
+        const errorMsg = errorData.detail || "Prediction failed";
+        
+        toast.error("Batch prediction failed", {
+          id: 'batch-prediction',
+          description: errorMsg
+        });
+        
+        throw new Error(errorMsg);
       }
 
       const predictions = await predictRes.json();
+      
+      // Validate predictions
+      if (!predictions.results || predictions.results.length === 0) {
+        toast.warning("No predictions generated", {
+          id: 'batch-prediction',
+          description: "No valid predictions were returned"
+        });
+        throw new Error("No predictions generated");
+      }
 
       setProgress({ current: 75, total: 100, currentSymbol: "Storing results..." });
 
@@ -71,6 +103,14 @@ export function BatchRunModal({ open, onClose, portfolios }: BatchRunModalProps)
 
       setProgress({ current: 100, total: 100, currentSymbol: "Complete!" });
       
+      const successCount = predictions.successful || predictions.results.length;
+      const failedCount = predictions.failed || 0;
+      
+      toast.success("Batch predictions complete", {
+        id: 'batch-prediction',
+        description: `${successCount} successful${failedCount > 0 ? `, ${failedCount} failed` : ''}`
+      });
+      
       setTimeout(() => {
         onClose();
         router.push(`/portfolios/${portfolio.id}?mlPredictions=true`);
@@ -78,9 +118,18 @@ export function BatchRunModal({ open, onClose, portfolios }: BatchRunModalProps)
 
     } catch (err: any) {
       console.error("Batch prediction error:", err);
-      setError(err.message || "Failed to run predictions. Please try again.");
+      const errorMsg = err.message || "Failed to run predictions. Please try again.";
+      setError(errorMsg);
       setIsRunning(false);
       setProgress(null);
+      
+      // Only show toast if we haven't already shown one
+      if (!err.message?.includes("Portfolio has no assets")) {
+        toast.error("Batch prediction error", {
+          id: 'batch-prediction',
+          description: errorMsg
+        });
+      }
     }
   };
 
@@ -171,22 +220,22 @@ export function BatchRunModal({ open, onClose, portfolios }: BatchRunModalProps)
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground mb-1">Holdings</p>
-                      <p className="font-medium">{portfolio.holdings.length} stocks</p>
+                      <p className="font-medium">{portfolio.allocations?.length || 0} stocks</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Total Value</p>
                       <p className="font-medium">
-                        KES {formatNumber(portfolio.totalValue, 2)}
+                        KES {formatNumber(portfolio.totalValue || 0, 2)}
                       </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Sharpe Ratio</p>
-                      <p className="font-medium">{formatNumber(portfolio.sharpeRatio, 2)}</p>
+                      <p className="font-medium">{formatNumber(portfolio.sharpeRatio || 0, 2)}</p>
                     </div>
                   </div>
                   <div className="mt-3 pt-3 border-t border-border">
                     <p className="text-xs text-muted-foreground">
-                      Stocks: {portfolio.holdings.map(h => h.symbol).join(", ")}
+                      Stocks: {portfolio.allocations?.map((a: any) => a.asset.ticker).join(", ") || "None"}
                     </p>
                   </div>
                 </div>

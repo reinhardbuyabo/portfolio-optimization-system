@@ -21,8 +21,29 @@ router = APIRouter()
 def _compute_garch_prediction(req: GARCHVolatilityRequest) -> dict:
     start = time.perf_counter()
     try:
+        # Validation 1: Check if log_returns exists and is not empty
         if not req.log_returns:
             raise ValueError("log_returns cannot be empty")
+        
+        # Validation 2: Check minimum data points (need at least 30 for GARCH)
+        if len(req.log_returns) < 30:
+            raise ValueError(f"Insufficient data: need at least 30 returns, got {len(req.log_returns)}")
+        
+        # Validation 3: Check for invalid values (NaN, Inf)
+        invalid_count = sum(1 for r in req.log_returns if not np.isfinite(r))
+        if invalid_count > 0:
+            raise ValueError(f"Data contains {invalid_count} invalid values (NaN or Infinity)")
+        
+        # Validation 4: Check for zero variance (constant values)
+        returns_array = np.array(req.log_returns)
+        if np.std(returns_array) == 0:
+            raise ValueError("Data has zero variance - all returns are identical")
+        
+        # Validation 5: Check for extreme outliers (> 50% daily return)
+        max_abs_return = np.max(np.abs(returns_array))
+        if max_abs_return > 0.5:
+            logger.warning(f"Extreme return detected for {req.symbol}: {max_abs_return:.2%}")
+        
         series = pd.Series(req.log_returns)
         
         # Use the new efficient function
@@ -31,15 +52,37 @@ def _compute_garch_prediction(req: GARCHVolatilityRequest) -> dict:
             verbose=False
         )
         
+        # Validation 6: Check if forecast is valid
+        if forecasted_variance is None or not np.isfinite(forecasted_variance):
+            raise ValueError("GARCH model produced invalid forecast")
+        
+        # Validation 7: Check if variance is in reasonable range
+        if forecasted_variance < 0:
+            raise ValueError(f"Negative variance forecast: {forecasted_variance}")
+        
+        if forecasted_variance > 1.0:
+            logger.warning(f"Unusually high variance for {req.symbol}: {forecasted_variance}")
+        
+        # Calculate annualized volatility
+        volatility_annualized = np.sqrt(forecasted_variance * 252)
+        
+        # Validation 8: Sanity check on annualized volatility (0-500%)
+        if volatility_annualized > 5.0:
+            raise ValueError(f"Unrealistic volatility: {volatility_annualized:.1%}")
+        
         exec_time = time.perf_counter() - start
+        
+        logger.info(f"GARCH {req.symbol}: variance={forecasted_variance:.6f}, volatility={volatility_annualized:.2%}")
+        
         return GARCHVolatilityResponse(
             symbol=req.symbol,
-            forecasted_variance=forecasted_variance,
-            realized_variance=None,  # This is no longer calculated
+            forecasted_variance=float(forecasted_variance),
+            volatility_annualized=float(volatility_annualized),
             execution_time=exec_time,
         ).dict()
     except Exception as e:
         exec_time = time.perf_counter() - start
+        logger.error(f"GARCH error for {req.symbol}: {str(e)}")
         return ErrorResponse(error="volatility_failed", detail=str(e), execution_time=exec_time).dict()
 
 
