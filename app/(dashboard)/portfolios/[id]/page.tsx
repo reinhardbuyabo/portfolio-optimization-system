@@ -56,13 +56,12 @@ import {
   XCircle,
   Loader2,
   PieChart as PieChartIcon,
-  Download,
+  FileText,
 } from "lucide-react";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { toast } from "sonner";
 import type { StockPrediction } from "@/lib/portfolio-predictions";
-import { calculatePortfolioMetrics, optimizePortfolioWeights } from "@/lib/portfolio-predictions";
-import { generatePortfolioReport, generateEnhancedReport } from "@/lib/portfolio-export";
+import { calculatePortfolioMetrics, optimizePortfolioWeights, calculateOptimizedPortfolioMetrics } from "@/lib/portfolio-predictions";
 
 interface AssetOption {
   id: string;
@@ -347,26 +346,17 @@ export default function PortfolioDetailsPage() {
       };
     });
 
-    // Calculate current portfolio position using proper portfolio variance formula
+    // Calculate current portfolio position with proper diversification
     let currentPortfolio = null;
-    if (stockPoints.length > 0) {
-      const weights = stockPoints.map(s => s.weight);
-      const returns = stockPoints.map(s => s.rawReturn);
-      const volatilities = stockPoints.map(s => s.rawVolatility);
-      
-      // Portfolio expected return: weighted average
-      const portfolioReturn = returns.reduce((sum, ret, i) => sum + ret * weights[i], 0);
-      
-      // Portfolio volatility: simplified (weighted average, not proper covariance-based)
-      // Note: True portfolio variance requires covariance matrix: σ²_p = w'Σw
-      // For now, using weighted average as approximation
-      const portfolioVolatility = volatilities.reduce((sum, vol, i) => sum + vol * weights[i], 0);
+    if (stockPoints.length > 0 && predictions.length > 0) {
+      // Use the proper portfolio metrics calculation
+      const currentMetrics = calculatePortfolioMetrics(predictions);
       
       currentPortfolio = {
         symbol: 'Portfolio (Current)',
-        return: portfolioReturn * 100,
-        volatility: portfolioVolatility * 100,
-        sharpeRatio: portfolioVolatility > 0 ? (portfolioReturn - 0.05) / portfolioVolatility : 0,
+        return: currentMetrics.meanReturn * 100,
+        volatility: currentMetrics.meanVolatility * 100,
+        sharpeRatio: currentMetrics.sharpeRatio,
         weight: 1.0,
         isPortfolio: true,
       };
@@ -374,22 +364,17 @@ export default function PortfolioDetailsPage() {
 
     // Calculate optimized portfolio position if available
     let optimizedPortfolio = null;
-    let tangencyPortfolio = null; // Maximum Sharpe ratio portfolio
+    let tangencyPortfolio = null;
     
     if (optimizedWeights && optimizedWeights.length > 0) {
-      // Portfolio expected return: weighted average
-      const optReturn = optimizedWeights.reduce((sum, w) => sum + (w.expectedReturn * w.weight), 0);
-      
-      // Portfolio volatility: weighted average (approximation)
-      const optVolatility = optimizedWeights.reduce((sum, w) => sum + (w.volatility * w.weight), 0);
-      
-      const optSharpe = optVolatility > 0 ? (optReturn - 0.05) / optVolatility : 0;
+      // Use the proper optimized metrics calculation
+      const optMetrics = calculateOptimizedPortfolioMetrics(optimizedWeights);
       
       optimizedPortfolio = {
         symbol: 'Portfolio (Optimized)',
-        return: optReturn * 100,
-        volatility: optVolatility * 100,
-        sharpeRatio: optSharpe,
+        return: optMetrics.return * 100,
+        volatility: optMetrics.volatility * 100,
+        sharpeRatio: optMetrics.sharpeRatio,
         weight: 1.0,
         isPortfolio: true,
         isOptimized: true,
@@ -649,15 +634,12 @@ export default function PortfolioDetailsPage() {
     toast.loading("Applying optimized weights...", { id: 'apply-optimize' });
 
     try {
-      // Calculate optimized portfolio metrics
-      const optReturn = optimizedWeights.reduce((sum, w) => sum + (w.expectedReturn * w.weight), 0);
-      const optVolatility = optimizedWeights.reduce((sum, w) => sum + (w.volatility * w.weight), 0);
-      const optSharpe = optVolatility > 0 ? (optReturn - 0.05) / optVolatility : 0;
+      // Calculate optimized portfolio metrics using proper diversification
+      const portfolioMetrics = calculateOptimizedPortfolioMetrics(optimizedWeights);
       
-      // For Sortino ratio and max drawdown, we'll use simplified calculations
-      // In a real implementation, these would require historical return data
-      const sortinoRatio = optSharpe * 1.2; // Approximation: typically higher than Sharpe
-      const maxDrawdown = -Math.abs(optVolatility * 2); // Approximation based on volatility
+      // For Sortino ratio, use approximation (typically higher than Sharpe)
+      const sortinoRatio = portfolioMetrics.sharpeRatio * 1.2;
+      const maxDrawdown = -Math.abs(portfolioMetrics.volatility * 2);
       
       // Update portfolio allocations with optimized weights and metrics
       const response = await fetch(`/api/portfolios/${portfolioId}/rebalance`, {
@@ -669,9 +651,9 @@ export default function PortfolioDetailsPage() {
             weight: w.weight
           })),
           metrics: {
-            expectedReturn: optReturn,
-            volatility: optVolatility,
-            sharpeRatio: optSharpe,
+            expectedReturn: portfolioMetrics.return,
+            volatility: portfolioMetrics.volatility,
+            sharpeRatio: portfolioMetrics.sharpeRatio,
             sortinoRatio: sortinoRatio,
             maxDrawdown: maxDrawdown,
           }
@@ -684,11 +666,11 @@ export default function PortfolioDetailsPage() {
 
       toast.success("Optimization applied successfully", {
         id: 'apply-optimize',
-        description: `Sharpe Ratio: ${optSharpe.toFixed(2)}, Expected Return: ${(optReturn * 100).toFixed(2)}%`
+        description: `Sharpe Ratio: ${portfolioMetrics.sharpeRatio.toFixed(2)}, Expected Return: ${(portfolioMetrics.return * 100).toFixed(2)}%`
       });
       
       setShowOptimization(false);
-      setOptimizedWeights(null); // Clear optimized weights after applying
+      setOptimizedWeights(null);
       fetchPortfolio();
     } catch (error) {
       toast.error("Failed to apply optimization", {
@@ -729,62 +711,45 @@ export default function PortfolioDetailsPage() {
     }
   };
 
-  const handleExportReport = async () => {
-    if (!portfolio) return;
+  const handleViewReport = () => {
+    if (!portfolio || !portfolioId) return;
 
-    toast.loading("Generating report...", { id: 'export' });
+    // Save portfolio data to sessionStorage for the reports page
+    const reportData = {
+      portfolioId,
+      portfolioName: portfolio.name,
+      portfolioValue: portfolio.value,
+      status: portfolio.status,
+      riskTolerance: mlRiskClass || portfolio.riskTolerance,
+      targetReturn: portfolio.targetReturn,
+      expectedReturn: mlMetrics?.meanReturn || portfolio.expectedReturn,
+      volatility: mlMetrics?.meanVolatility || portfolio.volatility,
+      sharpeRatio: mlMetrics?.sharpeRatio || portfolio.sharpeRatio,
+      holdings: holdings.map(h => ({
+        ticker: h.ticker,
+        name: h.name,
+        weight: h.weight,
+        value: h.value,
+        predictedPrice: h.predictedPrice,
+        expectedReturn: h.expectedReturn,
+        volatility: h.volatility,
+      })),
+      mlMetrics: mlMetrics ? {
+        meanReturn: mlMetrics.meanReturn,
+        meanVolatility: mlMetrics.meanVolatility,
+        sharpeRatio: mlMetrics.sharpeRatio,
+        sortinoRatio: mlMetrics.sortinoRatio,
+        maxDrawdown: mlMetrics.maxDrawdown,
+        riskClass: mlRiskClass || portfolio.riskTolerance,
+      } : undefined,
+      optimizedWeights: optimizedWeights || undefined,
+      lastOptimized: latestResult?.createdAt,
+    };
 
-    try {
-      const exportData = {
-        portfolioName: portfolio.name,
-        portfolioValue: portfolio.value,
-        status: portfolio.status,
-        riskTolerance: mlRiskClass || portfolio.riskTolerance,
-        targetReturn: portfolio.targetReturn,
-        expectedReturn: mlMetrics?.meanReturn || portfolio.expectedReturn,
-        volatility: mlMetrics?.meanVolatility || portfolio.volatility,
-        sharpeRatio: mlMetrics?.sharpeRatio || portfolio.sharpeRatio,
-        holdings: holdings.map(h => ({
-          ticker: h.ticker,
-          name: h.name,
-          weight: h.weight,
-          value: h.value,
-          predictedPrice: h.predictedPrice,
-          expectedReturn: h.expectedReturn,
-          volatility: h.volatility,
-        })),
-        mlMetrics: mlMetrics ? {
-          meanReturn: mlMetrics.meanReturn,
-          meanVolatility: mlMetrics.meanVolatility,
-          sharpeRatio: mlMetrics.sharpeRatio,
-          riskClass: mlRiskClass || portfolio.riskTolerance,
-        } : undefined,
-        optimizedWeights: optimizedWeights || undefined,
-        lastOptimized: latestResult?.createdAt,
-      };
-
-      // Generate report with charts if available
-      if (chartView === 'allocation' || chartView === 'risk-return') {
-        await generateEnhancedReport(
-          exportData,
-          'allocation-chart',
-          chartView === 'risk-return' ? 'risk-return-chart' : undefined
-        );
-      } else {
-        await generatePortfolioReport(exportData);
-      }
-
-      toast.success("Report generated successfully", {
-        id: 'export',
-        description: "PDF downloaded to your device"
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error("Failed to generate report", {
-        id: 'export',
-        description: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
+    sessionStorage.setItem('portfolio_report_data', JSON.stringify(reportData));
+    
+    // Navigate to reports page
+    window.location.href = `/reports?portfolio=${portfolioId}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -883,6 +848,16 @@ export default function PortfolioDetailsPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
+          {latestResult && (
+            <Button
+              variant="outline"
+              onClick={handleViewReport}
+              className="gap-2 border-green-600 text-green-600 hover:bg-green-600/10"
+            >
+              <FileText className="w-4 h-4" />
+              View Report
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={handleRebalance}
@@ -891,14 +866,6 @@ export default function PortfolioDetailsPage() {
           >
             <RefreshCw className="w-4 h-4" />
             Rebalance Portfolio
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleExportReport}
-            className="gap-2 border-green-600 text-green-600 hover:bg-green-600/10"
-          >
-            <Download className="w-4 h-4" />
-            Export Report
           </Button>
           {hasPredictions && (
             <>
@@ -1610,13 +1577,13 @@ export default function PortfolioDetailsPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-muted/50 rounded-lg p-4">
                     <p className="text-xs text-muted-foreground mb-1">Sharpe Ratio</p>
-                    <p className={`text-2xl font-semibold ${mlMetrics && mlMetrics.sharpeRatio < 0 ? 'text-destructive' : 'text-chart-1'}`}>
+                    <p className={`text-2xl font-semibold ${(() => {
+                      const metrics = calculateOptimizedPortfolioMetrics(optimizedWeights);
+                      return metrics.sharpeRatio < 0 ? 'text-destructive' : 'text-chart-1';
+                    })()}`}>
                       {(() => {
-                        // Calculate actual optimized portfolio metrics
-                        const optReturn = optimizedWeights.reduce((sum, w) => sum + (w.expectedReturn * w.weight), 0);
-                        const optVolatility = optimizedWeights.reduce((sum, w) => sum + (w.volatility * w.weight), 0);
-                        const optSharpe = optVolatility > 0 ? (optReturn - 0.05) / optVolatility : 0;
-                        return optSharpe.toFixed(2);
+                        const metrics = calculateOptimizedPortfolioMetrics(optimizedWeights);
+                        return metrics.sharpeRatio.toFixed(2);
                       })()}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1626,12 +1593,12 @@ export default function PortfolioDetailsPage() {
                   <div className="bg-muted/50 rounded-lg p-4">
                     <p className="text-xs text-muted-foreground mb-1">Expected Return (Annual)</p>
                     <p className={`text-2xl font-semibold ${(() => {
-                      const optReturn = optimizedWeights.reduce((sum, w) => sum + (w.expectedReturn * w.weight), 0);
-                      return optReturn < 0 ? 'text-destructive' : 'text-chart-1';
+                      const metrics = calculateOptimizedPortfolioMetrics(optimizedWeights);
+                      return metrics.return < 0 ? 'text-destructive' : 'text-chart-1';
                     })()}`}>
                       {(() => {
-                        const optReturn = optimizedWeights.reduce((sum, w) => sum + (w.expectedReturn * w.weight), 0);
-                        return formatPercent(optReturn * 100);
+                        const metrics = calculateOptimizedPortfolioMetrics(optimizedWeights);
+                        return formatPercent(metrics.return * 100);
                       })()}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1642,8 +1609,8 @@ export default function PortfolioDetailsPage() {
                     <p className="text-xs text-muted-foreground mb-1">Volatility (Annual)</p>
                     <p className="text-2xl font-semibold">
                       {(() => {
-                        const optVolatility = optimizedWeights.reduce((sum, w) => sum + (w.volatility * w.weight), 0);
-                        return formatPercent(optVolatility * 100);
+                        const metrics = calculateOptimizedPortfolioMetrics(optimizedWeights);
+                        return formatPercent(metrics.volatility * 100);
                       })()}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">

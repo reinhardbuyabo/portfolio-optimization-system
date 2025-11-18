@@ -116,6 +116,30 @@ export interface OptimizedWeight {
   sharpeRatio: number;
 }
 
+/**
+ * Calculate portfolio volatility with diversification effect
+ * Uses simplified correlation assumption since we don't have actual correlation matrix
+ */
+function calculatePortfolioVolatility(
+  weights: number[],
+  volatilities: number[],
+  avgCorrelation: number = 0.3 // Assume moderate positive correlation between stocks
+): number {
+  if (weights.length !== volatilities.length) return 0;
+  
+  let portfolioVariance = 0;
+  
+  // Variance formula: σ²_p = Σ Σ w_i w_j σ_i σ_j ρ_ij
+  for (let i = 0; i < weights.length; i++) {
+    for (let j = 0; j < weights.length; j++) {
+      const correlation = i === j ? 1.0 : avgCorrelation;
+      portfolioVariance += weights[i] * weights[j] * volatilities[i] * volatilities[j] * correlation;
+    }
+  }
+  
+  return Math.sqrt(portfolioVariance);
+}
+
 export function optimizePortfolioWeights(
   predictions: StockPrediction[]
 ): OptimizedWeight[] {
@@ -142,11 +166,11 @@ export function optimizePortfolioWeights(
   
   if (allNegativeReturns || allNegativeSharpe) {
     // If all returns are negative, minimize risk by allocating to lowest volatility stocks
-    stocksWithSharpe.sort((a, b) => a.volatility - b.volatility); // Sort by volatility ascending
+    stocksWithSharpe.sort((a, b) => a.volatility - b.volatility);
     
     // Use exponential weighting favoring lower volatility
     const totalWeight = stocksWithSharpe.reduce((sum, _, index) => {
-      return sum + Math.exp(-index * 0.8); // Exponential decay
+      return sum + Math.exp(-index * 0.8);
     }, 0);
     
     return stocksWithSharpe.map((stock, index) => ({
@@ -176,15 +200,19 @@ export function optimizePortfolioWeights(
   // Sort by Sharpe ratio (descending)
   positiveStocks.sort((a, b) => b.sharpeRatio - a.sharpeRatio);
   
-  // Allocate more weight to higher Sharpe ratios using quadratic weighting
-  // Weight proportional to Sharpe^2 (more aggressive concentration)
-  const sharpeSquaredSum = positiveStocks.reduce((sum, s) => {
-    return sum + Math.max(0, s.sharpeRatio) ** 2;
-  }, 0);
+  // Use inverse variance weighting with Sharpe ratio adjustment
+  // This balances between high returns and diversification
+  const inverseVariances = positiveStocks.map(s => {
+    const variance = s.volatility * s.volatility;
+    // Weight by (Sharpe * 1/variance) to balance return and risk
+    return s.sharpeRatio / Math.max(variance, 0.0001);
+  });
   
-  const optimized = positiveStocks.map(stock => ({
+  const sumInverseVariances = inverseVariances.reduce((sum, iv) => sum + iv, 0);
+  
+  const optimized = positiveStocks.map((stock, index) => ({
     symbol: stock.symbol,
-    weight: sharpeSquaredSum > 0 ? (Math.max(0, stock.sharpeRatio) ** 2) / sharpeSquaredSum : 1 / positiveStocks.length,
+    weight: sumInverseVariances > 0 ? inverseVariances[index] / sumInverseVariances : 1 / positiveStocks.length,
     expectedReturn: stock.expectedReturn,
     volatility: stock.volatility,
     sharpeRatio: stock.sharpeRatio,
@@ -203,6 +231,34 @@ export function optimizePortfolioWeights(
   });
   
   return optimized;
+}
+
+/**
+ * Calculate optimized portfolio metrics with proper diversification
+ */
+export function calculateOptimizedPortfolioMetrics(
+  optimizedWeights: OptimizedWeight[]
+): { return: number; volatility: number; sharpeRatio: number } {
+  const weights = optimizedWeights.map(w => w.weight);
+  const returns = optimizedWeights.map(w => w.expectedReturn);
+  const volatilities = optimizedWeights.map(w => w.volatility);
+  
+  // Portfolio return is weighted average
+  const portfolioReturn = weights.reduce((sum, w, i) => sum + w * returns[i], 0);
+  
+  // Portfolio volatility considers diversification
+  const portfolioVolatility = calculatePortfolioVolatility(weights, volatilities);
+  
+  // Sharpe ratio
+  const sharpeRatio = portfolioVolatility > 0 
+    ? (portfolioReturn - RISK_FREE_RATE) / portfolioVolatility 
+    : 0;
+  
+  return {
+    return: portfolioReturn,
+    volatility: portfolioVolatility,
+    sharpeRatio,
+  };
 }
 
 /**
