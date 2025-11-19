@@ -8,6 +8,8 @@ from processing.data_manager import load_pipeline, load_preprocessor
 from .routes.health import router as health_router
 from .routes.lstm import router as lstm_router
 from .routes.garch import router as garch_router
+from .routes.stock_predict_v4 import router as stock_v4_router
+from .services.model_registry import init_registry
 
 
 class TimingMiddleware(BaseHTTPMiddleware):
@@ -63,11 +65,19 @@ def create_app() -> FastAPI:
         app.state.pipeline = load_pipeline(file_name=f"{settings.MODEL_VERSION}.h5")
         app.state.preprocessor = load_preprocessor(file_name=f"preprocessor_{settings.MODEL_VERSION}.joblib")
         logger.info("Models loaded: version {}", settings.MODEL_VERSION)
+        
+        # Initialize stock-specific model registry (v4 with log transformations)
+        from pathlib import Path
+        specific_models_dir = Path(__file__).parent.parent / "trained_models" / "stock_specific_v4_log"
+        general_model_dir = Path(__file__).parent.parent / "trained_models" / "general_v4_log"
+        app.state.model_registry = init_registry(specific_models_dir, general_model_dir, cache_size=20)
+        logger.info("Hybrid model registry initialized (v4 log)")
 
     # Routers
     app.include_router(health_router, prefix="/api/v1", tags=["health"]) 
     app.include_router(lstm_router, prefix="/api/v1/predict", tags=["lstm"]) 
-    app.include_router(garch_router, prefix="/api/v1/predict", tags=["garch"]) 
+    app.include_router(garch_router, prefix="/api/v1/predict", tags=["garch"])
+    app.include_router(stock_v4_router, prefix="/api/v4", tags=["stock-predictions-v4"]) 
 
     return app
 

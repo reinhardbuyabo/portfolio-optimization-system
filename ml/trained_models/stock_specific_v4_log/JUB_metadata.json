@@ -1,0 +1,42 @@
+{
+  "stock_code": "JUB",
+  "training_date": "2025-11-19T12:17:34.054799",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.07050236314535141,
+  "best_val_mae": 0.10735474526882172,
+  "best_val_mape": 26.901836395263672,
+  "test_mae": 12.899762834821432,
+  "test_mape": 7.8338271537465,
+  "test_sharpe": -52.133854430665934,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 148.25,
+    "max_price": 200.0,
+    "price_range": 51.75,
+    "log_min": 4.998900037877835,
+    "log_max": 5.298317366548036,
+    "log_range": 0.2994173286702013,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

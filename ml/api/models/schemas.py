@@ -24,6 +24,10 @@ class LSTMPredictionResponse(BaseModel):
     horizon: int  # Number of days ahead for this prediction
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     execution_time: float
+    model_type: Optional[str] = None  # 'stock_specific' or 'general_with_stock_scaling'
+    current_price: Optional[float] = None  # Current price from input data
+    predicted_change: Optional[float] = None  # Absolute change
+    predicted_change_pct: Optional[float] = None  # Percentage change
 
 
 class BatchLSTMRequest(BaseModel):

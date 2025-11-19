@@ -1,0 +1,452 @@
+{
+  "BAMB": {
+    "stock_code": "BAMB",
+    "validation_date": "2025-11-18T22:02:36.873427",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 4.752635388496595,
+        "mape": 8.53141310897665,
+        "sharpe_ratio": 11.534134365824979,
+        "win_rate": 0.5,
+        "direction_accuracy": 0.5526315789473685,
+        "actual_range": [
+          41.6,
+          63.0
+        ],
+        "pred_range": [
+          44.24203109741211,
+          61.22682571411133
+        ],
+        "actual_mean": 51.90384615384615,
+        "pred_mean": 49.020503997802734
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 6.853790501185826,
+        "mape": 11.838191206566007,
+        "sharpe_ratio": 10.491389340453571,
+        "win_rate": 0.35294117647058826,
+        "direction_accuracy": 0.5882352941176471,
+        "actual_range": [
+          41.65,
+          63.0
+        ],
+        "pred_range": [
+          44.24203109741211,
+          58.701480865478516
+        ],
+        "actual_mean": 53.05857142857143,
+        "pred_mean": 47.724456787109375
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 9.772029190063476,
+        "mape": 16.41097090109521,
+        "sharpe_ratio": 8.274181459347,
+        "win_rate": 0.41379310344827586,
+        "direction_accuracy": 0.5862068965517241,
+        "actual_range": [
+          41.8,
+          63.0
+        ],
+        "pred_range": [
+          44.24203109741211,
+          54.406639099121094
+        ],
+        "actual_mean": 54.86333333333334,
+        "pred_mean": 46.159645080566406
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 17.10732421875,
+        "mape": 27.589015106767956,
+        "sharpe_ratio": -40.87426215546337,
+        "win_rate": 0.3333333333333333,
+        "direction_accuracy": 0.5555555555555556,
+        "actual_range": [
+          61.0,
+          63.0
+        ],
+        "pred_range": [
+          44.327510833740234,
+          45.70317840576172
+        ],
+        "actual_mean": 61.975,
+        "pred_mean": 44.86767578125
+      }
+    },
+    "summary": {
+      "avg_mae": 9.621444824623975,
+      "avg_mape": 16.092397580851458,
+      "best_horizon": "1d"
+    }
+  },
+  "EABL": {
+    "stock_code": "EABL",
+    "validation_date": "2025-11-18T22:02:39.869916",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 5.61608651968149,
+        "mape": 3.774870219145527,
+        "sharpe_ratio": -1.645476891664154,
+        "win_rate": 0.3684210526315789,
+        "direction_accuracy": 0.5526315789473685,
+        "actual_range": [
+          140.25,
+          159.75
+        ],
+        "pred_range": [
+          145.30279541015625,
+          153.35906982421875
+        ],
+        "actual_mean": 148.75,
+        "pred_mean": 148.63668823242188
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 6.199908447265625,
+        "mape": 4.13490114307714,
+        "sharpe_ratio": -3.139178287474721,
+        "win_rate": 0.35294117647058826,
+        "direction_accuracy": 0.5882352941176471,
+        "actual_range": [
+          140.25,
+          159.75
+        ],
+        "pred_range": [
+          145.30279541015625,
+          153.35906982421875
+        ],
+        "actual_mean": 149.46428571428572,
+        "pred_mean": 148.24359130859375
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 7.587524922688802,
+        "mape": 5.041282178361047,
+        "sharpe_ratio": -6.950163116374787,
+        "win_rate": 0.3103448275862069,
+        "direction_accuracy": 0.5517241379310345,
+        "actual_range": [
+          141.25,
+          159.75
+        ],
+        "pred_range": [
+          145.30279541015625,
+          153.35906982421875
+        ],
+        "actual_mean": 149.91666666666666,
+        "pred_mean": 147.89418029785156
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 4.055860900878907,
+        "mape": 2.607702491916485,
+        "sharpe_ratio": -45.44310943358624,
+        "win_rate": 0.5555555555555556,
+        "direction_accuracy": 0.6666666666666666,
+        "actual_range": [
+          151.0,
+          158.0
+        ],
+        "pred_range": [
+          148.12753295898438,
+          153.35906982421875
+        ],
+        "actual_mean": 154.225,
+        "pred_mean": 150.31753540039062
+      }
+    },
+    "summary": {
+      "avg_mae": 5.864845197628705,
+      "avg_mape": 3.8896890081250497,
+      "best_horizon": "30d"
+    }
+  },
+  "EQTY": {
+    "stock_code": "EQTY",
+    "validation_date": "2025-11-18T22:02:42.946792",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.7886048341408752,
+        "mape": 1.8626468831091407,
+        "sharpe_ratio": -13.717535667129624,
+        "win_rate": 0.5789473684210527,
+        "direction_accuracy": 0.631578947368421,
+        "actual_range": [
+          39.9,
+          43.95
+        ],
+        "pred_range": [
+          41.03425598144531,
+          42.92111587524414
+        ],
+        "actual_mean": 42.36282051282051,
+        "pred_mean": 42.23651885986328
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.9142924717494417,
+        "mape": 2.183675551900982,
+        "sharpe_ratio": -12.157934788052177,
+        "win_rate": 0.5588235294117647,
+        "direction_accuracy": 0.6176470588235294,
+        "actual_range": [
+          39.9,
+          43.95
+        ],
+        "pred_range": [
+          41.65375900268555,
+          42.92111587524414
+        ],
+        "actual_mean": 42.20428571428572,
+        "pred_mean": 42.348114013671875
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.92540896097819,
+        "mape": 2.2307071081008787,
+        "sharpe_ratio": -9.696160254989962,
+        "win_rate": 0.5172413793103449,
+        "direction_accuracy": 0.5862068965517241,
+        "actual_range": [
+          39.9,
+          43.95
+        ],
+        "pred_range": [
+          41.894981384277344,
+          42.92111587524414
+        ],
+        "actual_mean": 42.015,
+        "pred_mean": 42.423587799072266
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 2.1341131591796865,
+        "mape": 5.262466444223084,
+        "sharpe_ratio": -46.914063251495364,
+        "win_rate": 0.6666666666666666,
+        "direction_accuracy": 0.2222222222222222,
+        "actual_range": [
+          39.9,
+          41.5
+        ],
+        "pred_range": [
+          42.73237228393555,
+          42.92111587524414
+        ],
+        "actual_mean": 40.685,
+        "pred_mean": 42.81911087036133
+      }
+    },
+    "summary": {
+      "avg_mae": 1.1906048565120484,
+      "avg_mape": 2.8848739968335213,
+      "best_horizon": "1d"
+    }
+  },
+  "KCB": {
+    "stock_code": "KCB",
+    "validation_date": "2025-11-18T22:02:45.910597",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 1.5783446580935743,
+        "mape": 4.675844019402691,
+        "sharpe_ratio": -6.968089242424702,
+        "win_rate": 0.42105263157894735,
+        "direction_accuracy": 0.6578947368421053,
+        "actual_range": [
+          30.0,
+          35.6
+        ],
+        "pred_range": [
+          31.034835815429688,
+          32.78461837768555
+        ],
+        "actual_mean": 32.8525641025641,
+        "pred_mean": 31.844135284423828
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 1.6142684064592634,
+        "mape": 4.863337674110374,
+        "sharpe_ratio": -5.198792286798993,
+        "win_rate": 0.29411764705882354,
+        "direction_accuracy": 0.6176470588235294,
+        "actual_range": [
+          30.0,
+          35.6
+        ],
+        "pred_range": [
+          31.142162322998047,
+          32.78461837768555
+        ],
+        "actual_mean": 32.57857142857143,
+        "pred_mean": 31.913692474365234
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 1.4962755584716794,
+        "mape": 4.532724809405046,
+        "sharpe_ratio": -4.513446649670277,
+        "win_rate": 0.4827586206896552,
+        "direction_accuracy": 0.6551724137931034,
+        "actual_range": [
+          30.0,
+          35.6
+        ],
+        "pred_range": [
+          31.142162322998047,
+          32.78461837768555
+        ],
+        "actual_mean": 32.473333333333336,
+        "pred_mean": 31.957599639892578
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 1.5482831573486326,
+        "mape": 5.0337799873219105,
+        "sharpe_ratio": 5.814995241072441,
+        "win_rate": 0.2222222222222222,
+        "direction_accuracy": 0.3333333333333333,
+        "actual_range": [
+          30.0,
+          32.75
+        ],
+        "pred_range": [
+          32.380619049072266,
+          32.78461837768555
+        ],
+        "actual_mean": 31.189999999999998,
+        "pred_mean": 32.664405822753906
+      }
+    },
+    "summary": {
+      "avg_mae": 1.5592929450932873,
+      "avg_mape": 4.776421622560005,
+      "best_horizon": "10d"
+    }
+  },
+  "SCOM": {
+    "stock_code": "SCOM",
+    "validation_date": "2025-11-18T22:02:48.879827",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.8240874217106747,
+        "mape": 4.782757868861399,
+        "sharpe_ratio": -15.957748372740777,
+        "win_rate": 0.5789473684210527,
+        "direction_accuracy": 0.6578947368421053,
+        "actual_range": [
+          14.4,
+          18.7
+        ],
+        "pred_range": [
+          15.625150680541992,
+          16.664196014404297
+        ],
+        "actual_mean": 16.88333333333333,
+        "pred_mean": 16.359081268310547
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.7736483001708984,
+        "mape": 4.587440665066709,
+        "sharpe_ratio": -14.31342051590399,
+        "win_rate": 0.5588235294117647,
+        "direction_accuracy": 0.6470588235294118,
+        "actual_range": [
+          14.4,
+          18.7
+        ],
+        "pred_range": [
+          15.857813835144043,
+          16.664196014404297
+        ],
+        "actual_mean": 16.735714285714284,
+        "pred_mean": 16.433046340942383
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.6820416514078776,
+        "mape": 4.22558749545735,
+        "sharpe_ratio": -13.164914611208774,
+        "win_rate": 0.5862068965517241,
+        "direction_accuracy": 0.5517241379310345,
+        "actual_range": [
+          14.4,
+          17.85
+        ],
+        "pred_range": [
+          16.181108474731445,
+          16.664196014404297
+        ],
+        "actual_mean": 16.475,
+        "pred_mean": 16.50473976135254
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 1.259298400878906,
+        "mape": 8.324874692684705,
+        "sharpe_ratio": 50.88673614535674,
+        "win_rate": 0.3333333333333333,
+        "direction_accuracy": 0.3333333333333333,
+        "actual_range": [
+          14.4,
+          16.0
+        ],
+        "pred_range": [
+          16.54737091064453,
+          16.660192489624023
+        ],
+        "actual_mean": 15.344999999999999,
+        "pred_mean": 16.604297637939453
+      }
+    },
+    "summary": {
+      "avg_mae": 0.8847689435420891,
+      "avg_mape": 5.480165180517541,
+      "best_horizon": "10d"
+    }
+  }
+}
