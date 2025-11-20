@@ -279,6 +279,32 @@ See `__tests__/README.md` for detailed testing guide.
 
 This project is part of an academic assignment.
 
+## Machine Learning Integration
+
+This system includes advanced LSTM-based stock price prediction models:
+
+### V4 Log-Transformed Models
+- **5 stock-specific models** with 2-9% MAPE (SCOM, EQTY, KCB, BAMB, EABL)
+- **50+ stocks** covered by general model (~4.5% MAPE)
+- Multiple prediction horizons: 1d, 5d, 10d, 30d
+- LRU caching for fast predictions (<30ms cached)
+
+### Documentation
+- 📖 [V4 Integration Guide](docs/v4-integration/README.md) - Complete integration documentation
+- 🚀 [Quick Reference](docs/v4-integration/QUICK_REFERENCE.md) - Quick start and code examples
+- 📊 [Integration Summary](docs/v4-integration/SUMMARY.md) - Technical details and architecture
+
+### Quick Start (ML Service)
+```bash
+# Start ML service
+cd ml && tox -e serve-dev
+
+# Test integration
+./test-v4-integration.sh
+```
+
+See the [V4 Integration Guide](docs/v4-integration/README.md) for detailed setup and usage.
+
 ## Support
 
 For issues and questions, please create an issue in the repository.

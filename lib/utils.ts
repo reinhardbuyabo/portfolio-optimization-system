@@ -70,7 +70,12 @@ export function formatNumber(value: number, decimals: number = 2): string {
 }
 
 export function formatPercent(value: number, decimals: number = 2): string {
-  return `${value >= 0 ? '+' : ''}${formatNumber(value, decimals)}%`;
+  const formattedNumber = new Intl.NumberFormat('en-KE', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+    signDisplay: 'exceptZero',
+  }).format(value);
+  return `${formattedNumber}%`;
 }
 
 export function formatDate(date: string | Date): string {

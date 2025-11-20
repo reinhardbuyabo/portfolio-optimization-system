@@ -16,6 +16,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
+// Helper function to calculate risk level from volatility (same as detail page)
+function getRiskLevel(volatility: number): "LOW" | "MEDIUM" | "HIGH" | "NOT SET" {
+  if (volatility === 0) return "NOT SET";
+  if (volatility < 0.15) return "LOW";
+  if (volatility < 0.25) return "MEDIUM";
+  return "HIGH";
+}
+
 interface Portfolio {
   id: string;
   name: string;
@@ -335,11 +343,15 @@ export default function PortfoliosPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-[#9398a1]">Risk</span>
                     <span className={`font-medium px-2 py-0.5 rounded text-xs ${
-                      portfolio.riskTolerance === "LOW" ? "bg-green-500/20 text-green-400" :
-                      portfolio.riskTolerance === "MEDIUM" ? "bg-yellow-500/20 text-yellow-400" :
-                      "bg-red-500/20 text-red-400"
+                      (() => {
+                        const riskLevel = getRiskLevel(portfolio.volatility || 0);
+                        if (riskLevel === "NOT SET") return "bg-gray-500/20 text-gray-400";
+                        if (riskLevel === "LOW") return "bg-green-500/20 text-green-400";
+                        if (riskLevel === "MEDIUM") return "bg-yellow-500/20 text-yellow-400";
+                        return "bg-red-500/20 text-red-400";
+                      })()
                     }`}>
-                      {portfolio.riskTolerance}
+                      {getRiskLevel(portfolio.volatility || 0)}
                     </span>
                   </div>
                 </div>

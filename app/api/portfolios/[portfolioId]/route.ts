@@ -152,3 +152,74 @@ export async function DELETE(
   }
 }
 
+/**
+ * PATCH /api/portfolios/[portfolioId]
+ * Update portfolio settings (name, description, riskTolerance, targetReturn)
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { portfolioId: string } }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const portfolio = await prisma.portfolio.findUnique({
+      where: { id: params.portfolioId },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (!portfolio) {
+      return NextResponse.json({ error: "Portfolio not found" }, { status: 404 });
+    }
+
+    // Only the owner can update the portfolio
+    if (portfolio.userId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { name, description, riskTolerance, targetReturn, status } = body;
+
+    // Build update data object
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name.trim();
+    if (description !== undefined) updateData.description = description ? description.trim() : null;
+    if (riskTolerance !== undefined) updateData.riskTolerance = riskTolerance;
+    if (targetReturn !== undefined) updateData.targetReturn = targetReturn;
+    if (status !== undefined) updateData.status = status;
+
+    const updatedPortfolio = await prisma.portfolio.update({
+      where: { id: params.portfolioId },
+      data: updateData,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        allocations: {
+          include: {
+            asset: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(updatedPortfolio);
+  } catch (error: any) {
+    console.error("PATCH /api/portfolios/[portfolioId] error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to update portfolio" },
+      { status: 500 }
+    );
+  }
+}
+

@@ -166,20 +166,41 @@ export default function StockAnalysisPage() {
         return;
       }
 
-      const requestBody = {
-        symbol: selectedStock,
-        horizon: forecastDays,
-        data: historicalData.map(p => ({ "Day Price": p.price }))
-      };
-
       let endpoint = "";
       let modelName = "";
+      let requestBody: any = {};
+      
       if (activeTab === 'lstm') {
-        endpoint = "/api/ml/lstm/predict";
+        // Use V4 API for LSTM predictions
+        endpoint = "/api/ml/v4/predict";
         modelName = "LSTM";
+        
+        // Map horizon to V4 format (1d, 5d, 10d, 30d)
+        const horizonMap: Record<number, '1d' | '5d' | '10d' | '30d'> = {
+          1: '1d',
+          3: '5d',  // Map 3 days to 5 days
+          7: '10d', // Map 7 days to 10 days
+          30: '30d',
+          90: '30d',  // Map longer periods to 30d
+          180: '30d',
+          365: '30d',
+        };
+        
+        const v4Horizon = horizonMap[forecastDays] || '10d';
+        
+        requestBody = {
+          symbol: selectedStock,
+          horizon: v4Horizon,
+          recent_prices: historicalData.slice(-60).map(p => p.price)
+        };
       } else if (activeTab === 'garch') {
         endpoint = "/api/ml/garch/predict";
         modelName = "GARCH";
+        requestBody = {
+          symbol: selectedStock,
+          horizon: forecastDays,
+          data: historicalData.map(p => ({ "Day Price": p.price }))
+        };
       } else {
         throw new Error("Invalid model type selected");
       }

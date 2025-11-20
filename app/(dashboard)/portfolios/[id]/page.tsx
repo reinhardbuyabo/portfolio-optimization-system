@@ -121,6 +121,7 @@ interface HoldingRow {
   predictedPrice?: number;
   expectedReturn?: number;
   volatility?: number;
+  sharpeRatio?: number;
 }
 
 const CHART_COLORS = [
@@ -216,24 +217,105 @@ export default function PortfolioDetailsPage() {
     fetchPortfolio();
   }, [portfolioId]);
 
-  // Load predictions from sessionStorage if redirected from batch run
+  // Load predictions from database or sessionStorage if redirected from batch run
   useEffect(() => {
-    if (showMLPredictions && portfolioId) {
-      const stored = sessionStorage.getItem(`portfolio_predictions_${portfolioId}`);
-      if (stored) {
-        try {
-          const data = JSON.parse(stored);
-          setPredictions(data.predictions);
-          setHasPredictions(true);
-          toast.success("ML predictions loaded", {
-            description: `${data.predictions?.length || 0} stocks analyzed`
-          });
-        } catch (error) {
-          console.error('Error loading predictions:', error);
+    const loadPredictions = async () => {
+      if (!portfolioId) {
+        console.log('❌ No portfolioId, skipping prediction load');
+        return;
+      }
+      
+      console.log('🔍 Loading predictions for portfolio:', portfolioId);
+      console.log('🔍 showMLPredictions:', showMLPredictions);
+      
+      try {
+        // First, try to fetch from database
+        console.log('📡 Fetching from database...');
+        const response = await fetch(`/api/ml/predictions/${portfolioId}`);
+        
+        console.log('📡 Database response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📡 Database response data:', data);
+          
+          if (data.predictions && data.predictions.length > 0) {
+            setPredictions(data.predictions);
+            setHasPredictions(true);
+            console.log('✅ ML predictions loaded from database:', data.predictions);
+            
+            if (showMLPredictions) {
+              toast.success("ML predictions loaded", {
+                description: `${data.predictions.length} stocks analyzed (from database)`
+              });
+            }
+            return;
+          } else {
+            console.log('⚠️ Database has no predictions');
+          }
+        } else {
+          console.log('❌ Database fetch failed:', await response.text());
+        }
+        
+        // Fallback to sessionStorage if redirected from batch run
+        console.log('💾 Checking sessionStorage...');
+        const storageKey = `portfolio_predictions_${portfolioId}`;
+        console.log('💾 Storage key:', storageKey);
+        
+        if (showMLPredictions) {
+          const stored = sessionStorage.getItem(storageKey);
+          console.log('💾 SessionStorage raw value:', stored ? 'EXISTS' : 'NULL');
+          
+          if (stored) {
+            try {
+              const data = JSON.parse(stored);
+              console.log('💾 Parsed sessionStorage data:', data);
+              console.log('💾 Predictions array:', data.predictions);
+              
+              const validPredictions = (data.predictions || []).filter((p: any) => {
+                const isValid = p && p.symbol && p.lstm?.prediction !== undefined && p.currentPrice !== undefined;
+                if (!isValid) {
+                  console.warn('⚠️ Invalid prediction found:', p);
+                }
+                return isValid;
+              });
+              
+              console.log(`💾 Valid predictions: ${validPredictions.length} / ${data.predictions?.length || 0}`);
+              
+              if (validPredictions.length > 0) {
+                setPredictions(validPredictions);
+                setHasPredictions(true);
+                console.log('✅ ML predictions loaded from sessionStorage:', validPredictions);
+                toast.success("ML predictions loaded", {
+                  description: `${validPredictions.length} stocks analyzed successfully`
+                });
+              } else {
+                console.warn('❌ No valid predictions found in stored data');
+                console.log('Raw stored predictions:', JSON.stringify(data.predictions, null, 2));
+                toast.warning("No valid predictions found");
+              }
+            } catch (parseError) {
+              console.error('❌ Error parsing sessionStorage data:', parseError);
+              toast.error("Failed to parse stored predictions");
+            }
+          } else {
+            console.log('❌ No predictions in sessionStorage for portfolio:', portfolioId);
+            toast.info("No predictions available", {
+              description: "Run batch predictions first"
+            });
+          }
+        } else {
+          console.log('ℹ️ showMLPredictions is false, skipping sessionStorage check');
+        }
+      } catch (error) {
+        console.error('❌ Error loading predictions:', error);
+        if (showMLPredictions) {
           toast.error("Failed to load predictions");
         }
       }
-    }
+    };
+    
+    loadPredictions();
   }, [showMLPredictions, portfolioId]);
 
   const clearPredictions = () => {
@@ -296,6 +378,19 @@ export default function PortfolioDetailsPage() {
         holding.predictedPrice = prediction.lstm?.prediction;
         holding.expectedReturn = prediction.expectedReturn;
         holding.volatility = prediction.garch?.volatility_annualized;
+        
+        // Calculate Sharpe Ratio: (Expected Return - Risk Free Rate) / Volatility
+        const riskFreeRate = 0.05; // 5% annual risk-free rate
+        if (holding.volatility && holding.volatility > 0) {
+          holding.sharpeRatio = (holding.expectedReturn - riskFreeRate) / holding.volatility;
+        }
+        
+        console.log(`✓ Prediction mapped for ${allocation.asset.ticker}:`, {
+          predictedPrice: holding.predictedPrice,
+          expectedReturn: holding.expectedReturn,
+          volatility: holding.volatility,
+          sharpeRatio: holding.sharpeRatio
+        });
       }
 
       return holding;
@@ -305,9 +400,12 @@ export default function PortfolioDetailsPage() {
   // Calculate ML-based portfolio metrics
   const mlMetrics = useMemo(() => {
     if (!hasPredictions || !predictions || predictions.length === 0) {
+      console.log('No ML metrics: hasPredictions=', hasPredictions, 'predictions.length=', predictions?.length);
       return null;
     }
-    return calculatePortfolioMetrics(predictions);
+    const metrics = calculatePortfolioMetrics(predictions);
+    console.log('✓ ML Metrics calculated:', metrics);
+    return metrics;
   }, [hasPredictions, predictions]);
 
   // Calculate dynamic risk class based on ML volatility
@@ -324,8 +422,11 @@ export default function PortfolioDetailsPage() {
   // Prepare risk-return chart data
   const riskReturnData = useMemo(() => {
     if (!hasPredictions || !predictions || predictions.length === 0 || !portfolio?.allocations) {
+      console.log('No risk-return data: hasPredictions=', hasPredictions, 'predictions=', predictions?.length, 'allocations=', portfolio?.allocations?.length);
       return null;
     }
+
+    console.log('Building risk-return chart data with', predictions.length, 'predictions');
 
     // Map each stock to a risk-return point (already annualized from backend)
     const stockPoints = predictions.map((pred) => {
@@ -472,7 +573,7 @@ export default function PortfolioDetailsPage() {
       }
     }
 
-    return {
+    const chartData = {
       stocks: stockPoints,
       currentPortfolio,
       optimizedPortfolio,
@@ -481,6 +582,17 @@ export default function PortfolioDetailsPage() {
       capitalAllocationLine,
       riskFreeRate,
     };
+    
+    console.log('✓ Risk-return chart data built:', {
+      stockCount: stockPoints.length,
+      hasCurrentPortfolio: !!currentPortfolio,
+      hasOptimizedPortfolio: !!optimizedPortfolio,
+      hasTangencyPortfolio: !!tangencyPortfolio,
+      frontierPoints: efficientFrontier.length,
+      calPoints: capitalAllocationLine.length,
+    });
+    
+    return chartData;
   }, [hasPredictions, predictions, portfolio?.allocations, optimizedWeights]);
 
   const sortedHoldings = useMemo(() => {
@@ -603,19 +715,24 @@ export default function PortfolioDetailsPage() {
       return;
     }
 
+    console.log('Starting portfolio optimization with', predictions.length, 'predictions');
     setIsOptimizing(true);
     toast.loading("Optimizing portfolio weights...", { id: 'optimize' });
 
     try {
       // Calculate optimized weights
       const optimized = optimizePortfolioWeights(predictions);
+      console.log('✓ Optimization complete:', optimized);
       
       setOptimizedWeights(optimized);
       setShowOptimization(true);
       
+      const optMetrics = calculateOptimizedPortfolioMetrics(optimized);
+      console.log('✓ Optimized portfolio metrics:', optMetrics);
+      
       toast.success("Portfolio optimized successfully", {
         id: 'optimize',
-        description: "Weights adjusted to maximize Sharpe Ratio"
+        description: `Sharpe Ratio: ${optMetrics.sharpeRatio.toFixed(2)}`
       });
     } catch (error) {
       console.error('Optimization error:', error);
@@ -891,6 +1008,36 @@ export default function PortfolioDetailsPage() {
                 Clear Predictions
               </Button>
             </>
+          )}
+          {!hasPredictions && portfolio.allocations && portfolio.allocations.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const response = await fetch(`/api/ml/predictions/${portfolioId}`);
+                  if (response.ok) {
+                    const data = await response.json();
+                    if (data.predictions && data.predictions.length > 0) {
+                      setPredictions(data.predictions);
+                      setHasPredictions(true);
+                      toast.success("Predictions loaded from database", {
+                        description: `${data.predictions.length} stocks analyzed`
+                      });
+                    } else {
+                      toast.info("No predictions available", {
+                        description: "Run batch predictions first"
+                      });
+                    }
+                  }
+                } catch (error) {
+                  toast.error("Failed to load predictions");
+                }
+              }}
+              className="gap-2 border-chart-1 text-chart-1 hover:bg-chart-1/10"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Load Predictions
+            </Button>
           )}
           <Button
             onClick={() => setAddStockOpen(true)}
@@ -1423,11 +1570,12 @@ export default function PortfolioDetailsPage() {
                     { label: "Weight", field: "weight" as const, align: "right" },
                     { label: "Value (KES)", field: "value" as const, align: "right" },
                     { label: "Shares", field: "shares" as const, align: "right" },
-                    { label: "Price", field: "currentPrice" as const, align: "right" },
+                    { label: "Current Price", field: "currentPrice" as const, align: "right" },
                     ...(hasPredictions ? [
                       { label: "Predicted Price", field: "predictedPrice" as const, align: "right" },
                       { label: "Expected Return", field: "expectedReturn" as const, align: "right" },
-                      { label: "Volatility", field: "volatility" as const, align: "right" },
+                      { label: "Volatility (GARCH)", field: "volatility" as const, align: "right" },
+                      { label: "Sharpe Ratio", field: "sharpeRatio" as const, align: "right" },
                     ] : []),
                   ].map((column) => (
                     <th
@@ -1488,6 +1636,15 @@ export default function PortfolioDetailsPage() {
                         </td>
                         <td className="p-4 text-right text-sm text-muted-foreground">
                           {holding.volatility ? formatPercent(holding.volatility * 100) : "N/A"}
+                        </td>
+                        <td className={`p-4 text-right text-sm font-medium ${
+                          (holding.sharpeRatio || 0) > 1 ? 'text-success' :
+                          (holding.sharpeRatio || 0) > 0.5 ? 'text-chart-1' :
+                          'text-destructive'
+                        }`}>
+                          {holding.sharpeRatio !== undefined 
+                            ? holding.sharpeRatio.toFixed(2)
+                            : "N/A"}
                         </td>
                       </>
                     )}
@@ -1554,7 +1711,7 @@ export default function PortfolioDetailsPage() {
           {optimizedWeights && (
             <div className="space-y-6 py-4">
               {/* Warning for negative returns */}
-              {optimizedWeights.every(w => w.expectedReturn < 0.05) && (
+              {optimizedWeights.every(w => w.expectedReturn < 0) && (
                 <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                   <div className="flex items-start gap-3">
                     <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
@@ -1565,6 +1722,24 @@ export default function PortfolioDetailsPage() {
                       <p className="text-yellow-800 dark:text-yellow-300">
                         ML predictions indicate negative returns for all assets in your portfolio. 
                         The optimizer has minimized risk by allocating more weight to lower-volatility stocks.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Warning for low returns below risk-free rate */}
+              {!optimizedWeights.every(w => w.expectedReturn < 0) && 
+               optimizedWeights.every(w => w.expectedReturn < 0.05) && (
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-500 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-blue-900 dark:text-blue-200 mb-1">
+                        Returns Below Risk-Free Rate
+                      </p>
+                      <p className="text-blue-800 dark:text-blue-300">
+                        All expected returns are below the risk-free rate (5%). The optimizer focuses on minimizing risk while maintaining the best available returns.
                       </p>
                     </div>
                   </div>

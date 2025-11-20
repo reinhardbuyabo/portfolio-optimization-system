@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { formatCurrency, formatPercent } from "@/lib/utils";
-import { Search, TrendingUp, TrendingDown, Plus, Check } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Plus, Check, Loader2 } from "lucide-react";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface StockWithPrediction {
   symbol: string;
@@ -212,32 +215,51 @@ export function AddStockModal({ open, onClose, onAddStocks, portfolioName, exist
   const [volatilityFilter, setVolatilityFilter] = useState<string>("all");
   const [selectedStocks, setSelectedStocks] = useState<Set<string>>(new Set());
 
-  // Get unique sectors
-  const sectors = ["all", ...new Set(mockNSEStocks.map((s) => s.sector))];
-
-  // Filter stocks
-  const filteredStocks = mockNSEStocks.filter((stock) => {
-    const matchesSearch =
-      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stock.name.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesSector = sectorFilter === "all" || stock.sector === sectorFilter;
-
-    let matchesVolatility = true;
-    if (volatilityFilter === "low" && stock.volatility && stock.volatility >= 0.1) {
-      matchesVolatility = false;
-    } else if (
-      volatilityFilter === "medium" &&
-      stock.volatility &&
-      (stock.volatility < 0.1 || stock.volatility >= 0.2)
-    ) {
-      matchesVolatility = false;
-    } else if (volatilityFilter === "high" && stock.volatility && stock.volatility < 0.2) {
-      matchesVolatility = false;
+  // Fetch stocks from API with SWR for caching
+  const { data: stocksData, error, isLoading } = useSWR(
+    open ? '/api/stocks/available' : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000, // Cache for 1 minute
     }
+  );
 
-    return matchesSearch && matchesSector && matchesVolatility;
-  });
+  // Use mock data as fallback or if API fails
+  const availableStocks: StockWithPrediction[] = stocksData?.data || mockNSEStocks;
+
+  // Memoize sectors to avoid recalculation
+  const sectors = useMemo(
+    () => ["all", ...new Set(availableStocks.map((s) => s.sector))],
+    [availableStocks]
+  );
+
+  // Memoize filtered stocks for performance
+  const filteredStocks = useMemo(() => {
+    return availableStocks.filter((stock) => {
+      const matchesSearch =
+        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        stock.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesSector = sectorFilter === "all" || stock.sector === sectorFilter;
+
+      let matchesVolatility = true;
+      if (volatilityFilter === "low" && stock.volatility && stock.volatility >= 0.1) {
+        matchesVolatility = false;
+      } else if (
+        volatilityFilter === "medium" &&
+        stock.volatility &&
+        (stock.volatility < 0.1 || stock.volatility >= 0.2)
+      ) {
+        matchesVolatility = false;
+      } else if (volatilityFilter === "high" && stock.volatility && stock.volatility < 0.2) {
+        matchesVolatility = false;
+      }
+
+      return matchesSearch && matchesSector && matchesVolatility;
+    });
+  }, [availableStocks, searchQuery, sectorFilter, volatilityFilter]);
 
   const toggleStock = (symbol: string) => {
     const newSelected = new Set(selectedStocks);
@@ -250,7 +272,7 @@ export function AddStockModal({ open, onClose, onAddStocks, portfolioName, exist
   };
 
   const handleAddStocks = () => {
-    const stocksToAdd = mockNSEStocks.filter((s) => selectedStocks.has(s.symbol));
+    const stocksToAdd = availableStocks.filter((s) => selectedStocks.has(s.symbol));
     onAddStocks(stocksToAdd);
     setSelectedStocks(new Set());
     setSearchQuery("");
@@ -317,7 +339,16 @@ export function AddStockModal({ open, onClose, onAddStocks, portfolioName, exist
 
         {/* Stock List */}
         <div className="flex-1 overflow-y-auto border border-border rounded-lg">
-          {filteredStocks.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-chart-1" />
+              <span className="ml-3 text-muted-foreground">Loading stocks...</span>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-12 text-destructive">
+              <p>Failed to load stocks. Using cached data.</p>
+            </div>
+          ) : filteredStocks.length > 0 ? (
             <table className="w-full">
               <thead className="bg-muted sticky top-0">
                 <tr>

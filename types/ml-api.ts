@@ -1,6 +1,88 @@
 // ML API Request/Response Types
 
-// LSTM Prediction Types
+// ============================================================================
+// V4 Stock-Specific API Types (New - Log Transformed Models)
+// ============================================================================
+
+export interface StockPredictionV4Request {
+  symbol: string;
+  horizon: '1d' | '5d' | '10d' | '30d';
+  recent_prices: number[]; // 60 recent closing prices
+}
+
+export interface StockPredictionV4Response {
+  symbol: string;
+  prediction: number; // Predicted price in KES
+  horizon: string;
+  confidence_interval?: {
+    lower: number;
+    upper: number;
+  } | null;
+  mape?: number; // Model accuracy (Mean Absolute Percentage Error)
+  model_version: string; // e.g., "v4_log_stock_specific" or "v4_log_general"
+  execution_time: number; // In seconds
+  cached: boolean;
+  timestamp: string;
+}
+
+export interface BatchPredictionV4Request {
+  symbols: string[];
+  horizon: '1d' | '5d' | '10d' | '30d';
+  recent_prices: number[]; // 60 recent prices (same for all stocks or stock-specific)
+}
+
+export interface BatchPredictionV4Response {
+  predictions: StockPredictionV4Response[];
+  summary: {
+    total: number;
+    successful: number;
+    failed: number;
+    errors?: Array<{ symbol: string; error: string }> | null;
+  };
+  execution_time: number;
+  timestamp: string;
+}
+
+export interface ModelInfoV4 {
+  symbol: string;
+  available: boolean;
+  cached: boolean;
+  training_date?: string | null;
+  test_mape?: number | null;
+  model_version: string;
+}
+
+export interface ModelsAvailableV4Response {
+  total_stocks: number;
+  trained_models: number;
+  available_stocks: string[];
+  models_by_sector?: Record<string, string[]> | null;
+  model_version: string;
+  cache_stats: {
+    total_coverage: number;
+    specific_models: number;
+    general_model_stocks: number;
+    cache_size: number;
+    cache_capacity: number;
+    cache_hit_rate: number;
+  };
+}
+
+export interface HealthV4Response {
+  status: string;
+  service: string;
+  total_coverage: number;
+  specific_models: number;
+  general_model_stocks: number;
+  cache_size: string;
+  cache_hit_rate: string;
+  timestamp: string;
+}
+
+// ============================================================================
+// Legacy V1 LSTM Prediction Types (Kept for backward compatibility)
+// ============================================================================
+
 export interface LSTMPredictionRequest {
   symbol: string;
   data: Array<{ 'Day Price': number }>;

@@ -160,11 +160,10 @@ export function optimizePortfolioWeights(
     };
   });
   
-  // Check if all expected returns are negative or all Sharpe ratios are negative
-  const allNegativeReturns = stocksWithSharpe.every(s => s.expectedReturn < RISK_FREE_RATE);
-  const allNegativeSharpe = stocksWithSharpe.every(s => s.sharpeRatio < 0);
+  // Check if all expected returns are negative
+  const allNegativeReturns = stocksWithSharpe.every(s => s.expectedReturn < 0);
   
-  if (allNegativeReturns || allNegativeSharpe) {
+  if (allNegativeReturns) {
     // If all returns are negative, minimize risk by allocating to lowest volatility stocks
     stocksWithSharpe.sort((a, b) => a.volatility - b.volatility);
     
@@ -182,55 +181,98 @@ export function optimizePortfolioWeights(
     }));
   }
   
-  // Filter out stocks with negative Sharpe ratios for optimization
-  const positiveStocks = stocksWithSharpe.filter(s => s.sharpeRatio > 0);
+  // Use a simplified mean-variance optimization approach
+  // We'll search for the portfolio that maximizes Sharpe ratio
   
-  if (positiveStocks.length === 0) {
-    // No positive Sharpe stocks, fall back to equal weights
-    const equalWeight = 1 / stocksWithSharpe.length;
-    return stocksWithSharpe.map(stock => ({
-      symbol: stock.symbol,
-      weight: equalWeight,
-      expectedReturn: stock.expectedReturn,
-      volatility: stock.volatility,
-      sharpeRatio: stock.sharpeRatio,
-    }));
-  }
+  // Start with multiple candidate portfolios and pick the best one
+  const candidates: OptimizedWeight[][] = [];
   
-  // Sort by Sharpe ratio (descending)
-  positiveStocks.sort((a, b) => b.sharpeRatio - a.sharpeRatio);
-  
-  // Use inverse variance weighting with Sharpe ratio adjustment
-  // This balances between high returns and diversification
-  const inverseVariances = positiveStocks.map(s => {
-    const variance = s.volatility * s.volatility;
-    // Weight by (Sharpe * 1/variance) to balance return and risk
-    return s.sharpeRatio / Math.max(variance, 0.0001);
-  });
-  
-  const sumInverseVariances = inverseVariances.reduce((sum, iv) => sum + iv, 0);
-  
-  const optimized = positiveStocks.map((stock, index) => ({
+  // Candidate 1: Equal weights
+  const equalWeight = 1 / stocksWithSharpe.length;
+  candidates.push(stocksWithSharpe.map(stock => ({
     symbol: stock.symbol,
-    weight: sumInverseVariances > 0 ? inverseVariances[index] / sumInverseVariances : 1 / positiveStocks.length,
+    weight: equalWeight,
     expectedReturn: stock.expectedReturn,
     volatility: stock.volatility,
     sharpeRatio: stock.sharpeRatio,
-  }));
+  })));
   
-  // Add zero-weight entries for negative Sharpe stocks
-  const negativeStocks = stocksWithSharpe.filter(s => s.sharpeRatio <= 0);
-  negativeStocks.forEach(stock => {
-    optimized.push({
+  // Candidate 2: Weight by expected return (for positive returns only)
+  const positiveReturnStocks = stocksWithSharpe.filter(s => s.expectedReturn > 0);
+  if (positiveReturnStocks.length > 0) {
+    const totalReturn = positiveReturnStocks.reduce((sum, s) => sum + s.expectedReturn, 0);
+    const returnWeights = stocksWithSharpe.map(stock => {
+      if (stock.expectedReturn <= 0) return 0;
+      return stock.expectedReturn / totalReturn;
+    });
+    candidates.push(stocksWithSharpe.map((stock, i) => ({
       symbol: stock.symbol,
-      weight: 0,
+      weight: returnWeights[i],
       expectedReturn: stock.expectedReturn,
       volatility: stock.volatility,
       sharpeRatio: stock.sharpeRatio,
-    });
-  });
+    })));
+  }
   
-  return optimized;
+  // Candidate 3: Inverse volatility weighting (minimum variance)
+  const inverseVols = stocksWithSharpe.map(s => 1 / Math.max(s.volatility, 0.01));
+  const totalInverseVol = inverseVols.reduce((sum, iv) => sum + iv, 0);
+  candidates.push(stocksWithSharpe.map((stock, i) => ({
+    symbol: stock.symbol,
+    weight: inverseVols[i] / totalInverseVol,
+    expectedReturn: stock.expectedReturn,
+    volatility: stock.volatility,
+    sharpeRatio: stock.sharpeRatio,
+  })));
+  
+  // Candidate 4: Sharpe-weighted (only positive Sharpe stocks)
+  const positiveSharpeStocks = stocksWithSharpe.filter(s => s.sharpeRatio > 0);
+  if (positiveSharpeStocks.length > 0) {
+    const totalSharpe = positiveSharpeStocks.reduce((sum, s) => sum + s.sharpeRatio, 0);
+    const sharpeWeights = stocksWithSharpe.map(stock => {
+      if (stock.sharpeRatio <= 0) return 0;
+      return stock.sharpeRatio / totalSharpe;
+    });
+    candidates.push(stocksWithSharpe.map((stock, i) => ({
+      symbol: stock.symbol,
+      weight: sharpeWeights[i],
+      expectedReturn: stock.expectedReturn,
+      volatility: stock.volatility,
+      sharpeRatio: stock.sharpeRatio,
+    })));
+  }
+  
+  // Candidate 5: Maximum diversification with positive returns
+  // Allocate more to high-return, low-vol stocks
+  if (positiveReturnStocks.length > 0) {
+    const returnVolRatios = stocksWithSharpe.map(s => 
+      s.expectedReturn > 0 ? s.expectedReturn / Math.max(s.volatility, 0.01) : 0
+    );
+    const totalRatio = returnVolRatios.reduce((sum, r) => sum + r, 0);
+    if (totalRatio > 0) {
+      candidates.push(stocksWithSharpe.map((stock, i) => ({
+        symbol: stock.symbol,
+        weight: returnVolRatios[i] / totalRatio,
+        expectedReturn: stock.expectedReturn,
+        volatility: stock.volatility,
+        sharpeRatio: stock.sharpeRatio,
+      })));
+    }
+  }
+  
+  // Evaluate each candidate and pick the one with highest portfolio Sharpe ratio
+  let bestPortfolio = candidates[0];
+  let bestSharpe = calculateOptimizedPortfolioMetrics(candidates[0]).sharpeRatio;
+  
+  for (let i = 1; i < candidates.length; i++) {
+    const metrics = calculateOptimizedPortfolioMetrics(candidates[i]);
+    if (metrics.sharpeRatio > bestSharpe) {
+      bestSharpe = metrics.sharpeRatio;
+      bestPortfolio = candidates[i];
+    }
+  }
+  
+  return bestPortfolio;
 }
 
 /**
