@@ -103,3 +103,6 @@ dist/
 # venv
 *.venv/
 *venv/
+
+# DSStore
+/assets/.DS_Store
