@@ -1,0 +1,42 @@
+{
+  "stock_code": "DTK",
+  "training_date": "2025-11-19T11:51:18.940300",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.01966150477528572,
+  "best_val_mae": 0.022899119183421135,
+  "best_val_mape": 10.614152908325195,
+  "test_mae": 3.6568728855678025,
+  "test_mape": 6.864107318048897,
+  "test_sharpe": 157.66232948536666,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 44.0,
+    "max_price": 55.75,
+    "price_range": 11.75,
+    "log_min": 3.784189633918261,
+    "log_max": 4.020877410340228,
+    "log_range": 0.23668777642196703,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

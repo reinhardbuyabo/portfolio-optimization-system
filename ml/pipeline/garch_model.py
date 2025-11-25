@@ -177,3 +177,65 @@ def forecast_garch_volatility(
         print(f"Shape of evaluation_df after dropping NaNs: {eval_df.shape}")
 
     return eval_df
+
+
+def predict_next_day_volatility(
+    series_original: pd.Series,
+    scale_factor: float = 100.0,
+    max_retries: int = 1,
+    verbose: bool = False
+) -> float:
+    """
+    Fit a GARCH model on the entire series and forecast the next day's volatility.
+
+    Args:
+        series_original (pd.Series): The original log returns series.
+        scale_factor (float): Factor to scale the series for model fitting.
+        max_retries (int): Number of retries for model fitting.
+        verbose (bool): If True, print detailed error messages.
+
+    Returns:
+        float: The forecasted variance for the next day.
+    """
+    warnings.filterwarnings("ignore", message="y is poorly scaled")
+
+    series_original = series_original[~series_original.index.duplicated(keep='first')]
+    series_original.sort_index(inplace=True)
+
+    if series_original.empty:
+        raise ValueError("No log-return data found for the series.")
+
+    series_scaled = series_original * scale_factor
+
+    if len(series_scaled) < 10:
+        raise ValueError("Series is too short to fit the GARCH model.")
+
+    try:
+        model = create_garch_model(series_scaled)
+        res = None
+        last_exception = None
+        for attempt in range(max_retries + 1):
+            try:
+                res = model.fit(disp='off')
+                break
+            except Exception as e_fit:
+                last_exception = e_fit
+                if attempt < max_retries:
+                    time.sleep(0.1)
+                else:
+                    raise
+        if res is None:
+            raise last_exception
+
+        fcast = res.forecast(horizon=1, reindex=False)
+        
+        var_scaled = float(fcast.variance.values[-1, 0])
+        
+        var_original = var_scaled / (scale_factor ** 2)
+
+        return var_original
+
+    except Exception as e:
+        if verbose:
+            print(f"Error during GARCH model fitting or forecasting: {e}")
+        raise

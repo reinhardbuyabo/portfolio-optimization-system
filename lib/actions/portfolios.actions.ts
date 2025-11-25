@@ -290,6 +290,9 @@ export async function addStockToPortfolio(
     );
   });
 
+  // Update portfolio metrics
+  await updatePortfolioMetrics(portfolioId);
+
   revalidatePath(`/dashboard/portfolios/${portfolioId}`);
 
   return { success: true };
@@ -317,6 +320,20 @@ export async function updatePortfolioAllocations(
   try {
     const validatedAllocations = updatePortfolioAllocationsSchema.parse(allocations);
 
+    // Validation: no duplicate assets and weights sum to ~1 (100%)
+    const ids = new Set<string>();
+    let sum = 0;
+    for (const a of validatedAllocations) {
+      if (ids.has(a.assetId)) {
+        return { error: "Duplicate asset in allocations." };
+      }
+      ids.add(a.assetId);
+      sum += a.weight;
+    }
+    if (Math.abs(sum - 1) > 0.001) {
+      return { error: "Allocation weights must sum to 100%." };
+    }
+
     await prisma.$transaction(async (tx) => {
       await Promise.all(
         validatedAllocations.map((alloc) =>
@@ -327,6 +344,9 @@ export async function updatePortfolioAllocations(
         )
       );
     });
+
+    // Update portfolio metrics
+    await updatePortfolioMetrics(portfolioId);
 
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
 
@@ -374,6 +394,78 @@ export async function deletePortfolio(
 
     return { success: true };
   } catch (error) {
+    return { error: getErrorMessage(error) };
+  }
+}
+
+/**
+ * Recalculates and updates portfolio metrics based on current allocations
+ */
+export async function updatePortfolioMetrics(portfolioId: string) {
+  try {
+    const portfolio = await prisma.portfolio.findUnique({
+      where: { id: portfolioId },
+      include: {
+        allocations: {
+          include: {
+            asset: {
+              include: {
+                data: {
+                  orderBy: { date: 'desc' },
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!portfolio) {
+      return { error: "Portfolio not found" };
+    }
+
+    // Calculate holdingsCount
+    const holdingsCount = portfolio.allocations.length;
+
+    // Calculate total value
+    let totalValue = 0;
+    for (const allocation of portfolio.allocations) {
+      const latestPrice = allocation.asset.data[0]?.close || 0;
+      const allocationValue = allocation.weight * latestPrice;
+      totalValue += allocationValue;
+
+      // Update individual allocation value
+      await prisma.portfolioAllocation.update({
+        where: { id: allocation.id },
+        data: { value: allocationValue },
+      });
+    }
+
+    // Calculate weighted average metrics (if we have ML predictions)
+    let weightedReturn = 0;
+    let weightedVolatility = 0;
+    
+    for (const allocation of portfolio.allocations) {
+      if (allocation.expectedReturn !== null) {
+        weightedReturn += allocation.weight * allocation.expectedReturn;
+      }
+    }
+
+    // Update portfolio metrics
+    await prisma.portfolio.update({
+      where: { id: portfolioId },
+      data: {
+        holdingsCount,
+        value: totalValue,
+        expectedReturn: weightedReturn,
+        // volatility and sharpeRatio can be updated when ML predictions are available
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating portfolio metrics:", error);
     return { error: getErrorMessage(error) };
   }
 }

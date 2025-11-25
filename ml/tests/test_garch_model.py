@@ -1,6 +1,7 @@
 import pytest
 from pipeline.garch_model import create_garch_model
 import pandas as pd
+import numpy as np
 from arch import arch_model
 
 def test_create_garch_model():
@@ -11,6 +12,8 @@ def test_create_garch_model():
 
     model = create_garch_model(data)
 
-    assert isinstance(model, arch_model)
-    assert model.volatility == 'GARCH'
-    assert model.distribution == 't'
+    # Check that the model is an ARCH model object by checking attributes
+    assert hasattr(model, 'fit')
+    assert hasattr(model, 'forecast')
+    assert model.volatility.name == 'GARCH'
+    assert model.distribution.name == "Standardized Student's t"

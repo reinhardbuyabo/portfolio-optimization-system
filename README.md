@@ -1,6 +1,6 @@
 # Portfolio Optimization System
 
-A comprehensive portfolio optimization and management system built with Next.js 15, featuring advanced authentication, role-based access control, and portfolio analysis tools.
+A comprehensive portfolio optimization and management system built with Next.js 15, featuring advanced authentication, role-based access control, and ML-driven portfolio analysis tools.
 
 ## Features
 
@@ -12,12 +12,15 @@ A comprehensive portfolio optimization and management system built with Next.js 
 - **NextAuth v5** with database session strategy and session management
 - **Secure password hashing** with bcrypt
 
-### Portfolio Management
+### Portfolio Management & Analysis
 - Multi-user portfolio creation and management
 - Asset allocation tracking
-- Portfolio optimization results (Sharpe ratio, Sortino ratio, max drawdown)
-- Historical performance simulation
+- **LSTM-based price forecasting** with confidence intervals
+- **GARCH volatility forecasting** to model risk
+- Portfolio optimization to maximize Sharpe ratio
+- Historical performance simulation and backtesting
 - Risk tolerance profiling (Low, Medium, High)
+- **ARIMA vs. LSTM** model performance benchmarks
 
 ### User Profiles
 - Investor profiles with budget and constraints
@@ -31,8 +34,8 @@ A comprehensive portfolio optimization and management system built with Next.js 
 - **Authentication:** NextAuth v5 with Credentials provider
 - **Email:** Resend API for transactional emails
 - **Validation:** Zod schemas
-- **Testing:** Vitest with unit and integration tests
-- **UI Components:** Radix UI, shadcn/ui patterns
+- **Testing:** Vitest, Playwright (for E2E)
+- **UI Components:** Radix UI, shadcn/ui patterns, Recharts
 
 ## Getting Started
 
@@ -41,6 +44,7 @@ A comprehensive portfolio optimization and management system built with Next.js 
 - Node.js 20+ and npm
 - PostgreSQL database
 - Resend account (for email functionality)
+- Python environment for the ML service (see [ML Quick Start](#machine-learning-integration))
 
 ### Installation
 
@@ -82,12 +86,15 @@ A comprehensive portfolio optimization and management system built with Next.js 
    npx prisma generate
    ```
 
-6. **Start the development server**
+6. **Start the ML Service**
+   See the [ML Quick Start](#machine-learning-integration) section below.
+
+7. **Start the development server**
    ```bash
    npm run dev
    ```
 
-7. **Open your browser**
+8. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Available Scripts
@@ -113,172 +120,80 @@ npx prisma generate         # Generate Prisma Client
 ```bash
 npm test                # Run all tests in watch mode
 npm run test:unit       # Run unit tests only
-npm run test:integration # Run integration tests (requires RESEND_API_KEY)
-npm run test:ui         # Run tests with UI
+npm run test:e2e        # Run end-to-end tests
 npm run test:run        # Run tests once and exit
 ```
+**Note:** The test suite is currently undergoing improvements to fix build errors and enhance UI component testing with libraries like `recharts`.
 
-See `__tests__/README.md` for detailed testing documentation.
+## Machine Learning Integration
+
+This system includes advanced time-series forecasting models for stock price prediction and risk analysis.
+
+### V4 LSTM Price Forecasting
+- **5 stock-specific models** with 2-9% MAPE (SCOM, EQTY, KCB, BAMB, EABL)
+- **50+ stocks** covered by a general model (~4.5% MAPE)
+- Multiple prediction horizons: 1d, 5d, 10d, 30d
+- LRU caching for fast predictions (<30ms cached)
+
+### GARCH Volatility Forecasting
+- Models volatility and risk for individual assets.
+- Used in conjunction with LSTM predictions to provide a more complete financial picture.
+
+### Benchmarks
+- The repository includes scripts to benchmark the performance of LSTM models against classical ARIMA models.
+- The latest comparison results can be found in `ml/trained_models/arima_vs_lstm_comparison.csv`.
+
+### Quick Start (ML Service)
+The ML models are served via a separate Python service.
+```bash
+# Navigate to the ml directory
+cd ml
+
+# Install dependencies and start the service
+tox -e serve-dev
+
+# To run benchmarks
+python3 scripts/walk_forward_validation_v4.py --all
+python3 scripts/arima_benchmark.py
+```
+
+See the [V4 Integration Guide](docs/v4-integration/README.md) for detailed ML setup and usage.
 
 ## Project Structure
 
 ```
 portfolio-optimization-system/
 ├── app/
-│   ├── (auth)/              # Authentication pages (sign-in, sign-up, 2FA, password reset)
-│   ├── (root)/              # Main application pages (dashboard, etc.)
-│   ├── api/                 # API routes
-│   │   └── auth/            # NextAuth API handlers
-│   └── layout.tsx           # Root layout
+│   ├── (auth)/              # Authentication pages
+│   ├── (dashboard)/         # Main application pages
+│   └── api/                 # API routes
 ├── components/
-│   ├── ui/                  # Reusable UI components (Radix + Tailwind)
+│   ├── ui/                  # Reusable UI components
 │   └── shared/              # Shared application components
 ├── lib/
-│   ├── actions/             # Server Actions
-│   │   ├── users.actions.ts
-│   │   ├── portfolios.actions.ts
-│   │   └── assets.actions.ts
-│   ├── validators.ts        # Zod schemas
-│   ├── utils.ts             # Utility functions
-│   └── constants/           # Application constants
+│   └── actions/             # Server Actions
 ├── prisma/
-│   ├── schema.prisma        # Database schema
-│   └── migrations/          # Database migrations
+│   └── schema.prisma        # Database schema
 ├── db/
-│   ├── prisma.ts            # Prisma client singleton
-│   ├── seed.ts              # Database seeding script
-│   └── sample-data.ts       # Sample data definitions
+│   ├── prisma.ts            # Prisma client
+│   └── seed.ts              # Database seeding script
+├── ml/
+│   ├── scripts/             # Scripts for training, validation, and benchmarks
+│   ├── trained_models/      # Saved model files
+│   └── api/                 # FastAPI service code
 ├── __tests__/               # Test files
-│   ├── lib/                 # Unit tests
-│   └── integration/         # Integration tests
-├── types/                   # TypeScript type definitions
-├── auth.ts                  # NextAuth configuration
-└── CLAUDE.md                # AI assistant guidance
-
+└── auth.ts                  # NextAuth configuration
 ```
-
-## Authentication Flow
-
-### Sign Up
-1. User provides name, email, and password
-2. Password is hashed with bcrypt
-3. Account is created in database
-4. User is redirected to sign-in page
-
-### Sign In with Google OAuth
-1. User clicks "Continue with Google" button
-2. Redirected to Google authentication
-3. User authorizes the application
-4. Google account is linked to user profile (or new user is created)
-5. Session is created and user is redirected to dashboard
-
-### Sign In with Credentials + 2FA
-1. User enters email and password
-2. Credentials are validated against database
-3. 6-digit verification code is generated and sent via email
-4. User is redirected to 2FA verification page
-5. User enters code (valid for 5 minutes)
-6. Upon successful verification, session is created
-7. User is redirected to dashboard
-
-### Password Reset
-1. User requests password reset with email
-2. Secure token is generated and sent via email
-3. User clicks link and enters new password
-4. Password is updated and user signs in
-
-## Database Schema
-
-### Key Models
-- **User**: Authentication, roles, 2FA fields, password reset tokens
-- **InvestorProfile**: Budget, risk tolerance, investment preferences
-- **Portfolio**: User portfolios with status tracking
-- **Asset**: Investment assets with market data
-- **MarketData**: OHLCV data with sentiment scores
-- **OptimizationResult**: Portfolio performance metrics
-- **Simulation**: Backtesting results
-
-See `prisma/schema.prisma` for complete schema.
-
-## Environment Variables
-
-Required variables (see `.env.example`):
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
-| `AUTH_SECRET` | NextAuth secret key | Generate with `openssl rand -base64 32` |
-| `RESEND_API_KEY` | Resend API key for emails | `re_...` |
-| `NEXT_PUBLIC_APP_URL` | Application base URL | `http://localhost:3000` |
-| `GOOGLE_CLIENT_ID` | (Optional) Google OAuth client ID | From Google Cloud Console |
-| `GOOGLE_CLIENT_SECRET` | (Optional) Google OAuth client secret | From Google Cloud Console |
-| `TEST_EMAIL` | (Optional) Email for integration tests | `test@example.com` |
-
-## Security Best Practices
-
-- Passwords are hashed with bcrypt (10 rounds)
-- 2FA codes are time-limited (5 minutes expiry)
-- Password reset tokens expire after 1 hour
-- JWT sessions expire after 30 days
-- All sensitive operations use Server Actions with validation
-- Database uses UUIDs for primary keys
-- Email verification prevents unauthorized access
-
-## Testing
-
-The project includes comprehensive tests:
-
-- **Unit Tests**: Fast, isolated tests with mocked dependencies
-- **Integration Tests**: Real API calls to Resend for email testing
-
-Run unit tests frequently during development:
-```bash
-npm run test:unit
-```
-
-Run integration tests before deployment (requires valid `RESEND_API_KEY`):
-```bash
-npm run test:integration
-```
-
-See `__tests__/README.md` for detailed testing guide.
 
 ## Contributing
 
 1. Create a feature branch
 2. Make your changes
-3. Run tests: `npm run test:unit`
-4. Run linter: `npm run lint`
-5. Build the project: `npm run build`
-6. Create a pull request
-
-## Troubleshooting
-
-### Database Connection Issues
-- Verify `DATABASE_URL` in `.env` is correct
-- Ensure PostgreSQL is running
-- Check database user has proper permissions
-
-### Email Not Sending
-- Verify `RESEND_API_KEY` is valid
-- Check sender domain is verified in Resend dashboard
-- Ensure sender email is `onboarding@resend.dev` or your verified domain
-
-### 2FA Code Issues
-- Codes expire after 5 minutes
-- Check spam/junk folder for emails
-- Verify system clock is accurate
-- Use "Resend Code" button if needed
-
-### Build Errors
-- Clear `.next` folder: `rm -rf .next`
-- Regenerate Prisma Client: `npx prisma generate`
-- Clear node_modules: `rm -rf node_modules && npm install`
+3. Run tests and linter: `npm test` and `npm run lint`
+4. Ensure the project builds: `npm run build`
+5. Create a pull request
 
 ## License
 
 This project is part of an academic assignment.
 
-## Support
-
-For issues and questions, please create an issue in the repository.

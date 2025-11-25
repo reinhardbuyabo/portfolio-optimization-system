@@ -1,0 +1,42 @@
+{
+  "stock_code": "BRIT",
+  "training_date": "2025-11-19T11:50:47.462166",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.03879052773118019,
+  "best_val_mae": 0.11565089225769043,
+  "best_val_mape": 12.251580238342285,
+  "test_mae": 0.15484180450439425,
+  "test_mape": 2.7189670350257207,
+  "test_sharpe": -32.628881907529816,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 4.05,
+    "max_price": 5.76,
+    "price_range": 1.71,
+    "log_min": 1.3987168811184478,
+    "log_max": 1.7509374747078,
+    "log_range": 0.3522205935893521,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

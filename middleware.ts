@@ -31,8 +31,8 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
-  // If authenticated user tries to access auth pages, redirect to dashboard
-  if (isAuthenticated && (pathname === "/sign-in" || pathname === "/sign-up")) {
+  // If authenticated user tries to access auth pages or landing page, redirect to dashboard
+  if (isAuthenticated && (pathname === "/sign-in" || pathname === "/sign-up" || pathname === "/landing" || pathname === "/")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

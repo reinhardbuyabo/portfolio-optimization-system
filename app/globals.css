@@ -63,7 +63,7 @@
   --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-1: oklch(0.769 0.171 70.573);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
@@ -97,7 +97,7 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-1: oklch(0.769 0.171 70.573);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
@@ -119,6 +119,185 @@
   body {
     @apply bg-background text-foreground;
   }
+}
 
+/* New UI scoped theme - Dark Fintech Aesthetic */
+.newui {
+  /* Dark theme by default */
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.968 0.007 247.896);
+  
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.968 0.007 247.896);
+  
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  
+  --secondary: oklch(0.279 0.042 265.077);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.129 0.042 264.695);
+  
+  --muted: oklch(0.279 0.042 265.077);
+  --muted-foreground: oklch(0.678 0.014 264.531);
+  
+  --destructive: oklch(0.576 0.215 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  
+  --border: oklch(0.279 0.042 265.077);
+  --input: oklch(0.279 0.042 265.077);
+  --ring: oklch(0.208 0.042 265.755);
+  
+  --success: oklch(0.680 0.169 158.584);
+  --warning: oklch(0.769 0.171 70.573);
+  --info: oklch(0.628 0.206 254.604);
+  
+  /* Chart Colors */
+  --chart-1: oklch(0.769 0.171 70.573);
+  --chart-2: oklch(0.628 0.206 254.604);
+  --chart-3: oklch(0.680 0.169 158.584);
+  --chart-4: oklch(0.748 0.204 23.826);
+  --chart-5: oklch(0.707 0.186 328.364);
+}
 
+/* Light mode override for newui (if needed) */
+.light .newui {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.9 0.01 264.695);
+  --muted: oklch(0.95 0.005 264.695);
+  --muted-foreground: oklch(0.5 0.02 264.695);
+}
+
+/* New UI Typography */
+.newui h1 {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.newui h2 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.newui h3 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.newui h4 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.newui p {
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Responsive Typography for newui */
+@media (min-width: 768px) {
+  .newui h1 {
+    font-size: 2.25rem;
+  }
+  
+  .newui h2 {
+    font-size: 1.875rem;
+  }
+  
+  .newui h3 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Custom Scrollbar for newui */
+.newui ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.newui ::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+.newui ::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.newui ::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+/* Project utilities (migrated from assets/styles/globals.css) */
+@layer utilities {
+  /* Robust responsive visibility helpers (bypass potential order issues) */
+  .show-lg-flex { display: none; }
+  @media (width >= 1024px) { .show-lg-flex { display: flex !important; } }
+  .show-lg-block { display: none; }
+  @media (width >= 1024px) { .show-lg-block { display: block !important; } }
+  /* Container utility */
+  .container { @apply mx-auto max-w-screen-2xl px-4 md:px-6 lg:px-8; }
+  
+  /* Figma CTA button */
+  .btn-cta {
+    background: #F79D00; /* Figma orange */
+    color: #F8FAFC; /* near-white text for contrast */
+    border-radius: 16px;
+    box-shadow:
+      0px 24px 48px rgba(0, 0, 0, 0.30),
+      0px 8px 16px rgba(0, 0, 0, 0.20);
+  }
+  .btn-cta:hover { filter: brightness(0.96); }
+  .btn-cta:focus-visible { outline: 2px solid color-mix(in oklab, #F79D00 30%, white); outline-offset: 2px; }
+  .wrapper { @apply max-w-7xl lg:mx-auto p-5 md:px-10 w-full; }
+  .flex-start { @apply flex justify-start items-center; }
+  .flex-center { @apply flex justify-center items-center; }
+  .flex-between { @apply flex justify-between items-center; }
+  .h1-bold { @apply font-bold text-3xl lg:text-4xl; }
+  .h2-bold { @apply font-bold text-2xl lg:text-3xl; }
+  .h3-bold { @apply font-bold text-xl lg:text-2xl; }
+  .yellow-btn { @apply h-12 cursor-pointer bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-gray-950 font-medium text-base rounded-lg shadow-lg disabled:opacity-50; }
+  .home-wrapper { @apply text-gray-400 flex-col gap-4 md:gap-10 items-center sm:items-start; }
+  .home-section { @apply w-full gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3; }
+  .header { @apply z-50 w-full h-[70px] bg-gray-800; }
+  .header-wrapper { @apply flex justify-between items-center px-6 py-4 text-gray-500; }
+  .auth-layout { @apply flex flex-col justify-between lg:flex-row h-screen bg-gray-900 relative overflow-hidden; }
+  .auth-logo { @apply pt-6 lg:pt-8 mb-8 lg:mb-12; }
+  .auth-left-section { @apply w-full lg:w-[45%] lg:h-screen px-6 lg:px-16 flex flex-col overflow-y-auto; }
+  .auth-right-section { @apply w-full max-lg:border-t max-lg:border-gray-600 lg:w-[55%] lg:h-screen bg-gray-800 px-6 py-4 md:p-6 lg:py-12 lg:px-18 flex flex-col justify-start; }
+  .auth-blockquote { @apply text-sm md:text-xl lg:text-2xl font-medium text-gray-400 mb-1 md:mb-6 lg:mb-8; }
+  .auth-testimonial-author { @apply text-xs md:text-lg font-bold text-gray-400 not-italic; }
+  .auth-dashboard-preview { @apply border-6 border-gray-800 left-0 hidden w-[1024px] h-auto max-w-none lg:block rounded-xl shadow-2xl; }
+  .form-title { @apply text-4xl font-bold text-gray-400 mb-10; }
+  .form-label { @apply text-sm font-medium text-gray-400; }
+  .form-input { @apply h-12 px-3 py-3 text-white text-base placeholder:text-gray-500 border-gray-600 bg-gray-800 rounded-lg focus:!border-yellow-500 focus:ring-0; }
+  .select-trigger { @apply w-full !h-12 px-3 py-3 text-base border-gray-600 bg-gray-800 text-white rounded-lg focus:!border-yellow-500 focus:ring-0; }
+  .country-select-trigger { @apply h-12 px-3 py-3 text-base w-full justify-between font-normal border-gray-600 bg-gray-800 text-gray-400 rounded-lg focus:!border-yellow-500 focus:ring-0; }
+  .country-select-input { @apply !bg-gray-800 text-gray-400 border-0 border-b border-gray-600 rounded-none focus:ring-0 placeholder:text-gray-500; }
+  .country-select-empty { @apply text-gray-500 py-6 text-center !bg-gray-800; }
+  .country-select-item { @apply text-white cursor-pointer px-3 py-2 rounded-sm bg-gray-800 hover:!bg-gray-600; }
+  .footer-link { @apply text-gray-400 font-medium hover:text-yellow-400 hover:underline transition-colors; }
+  .search-text { @apply cursor-pointer hover:text-yellow-500; }
+  .search-btn { @apply cursor-pointer px-4 py-2 w-fit flex items-center gap-2 text-sm md:text-base bg-yellow-500 hover:bg-yellow-500 text-black font-medium rounded; }
+  .search-dialog { @apply !bg-gray-800 lg:min-w-[800px] border-gray-600 fixed top-10 left-1/2 -translate-x-1/2 translate-y-10; }
+  .search-field { @apply !bg-gray-800 border-b border-gray-600 relative; }
+  .search-list { @apply !bg-gray-800 max-h-[400px]; }
+  .search-list-indicator { @apply px-5 py-2; }
+  .search-list-empty { @apply py-6 !bg-transparent text-center text-gray-500; }
+  .search-input { @apply !bg-gray-800 border-0 text-gray-400 placeholder:text-gray-500 focus:ring-0 text-base h-14 pr-10; }
+  .search-loader { @apply absolute right-12 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 animate-spin; }
+  .search-count { @apply py-2 px-4 text-sm font-medium text-gray-400 bg-gray-700 border-b border-gray-700; }
+  .search-item { @apply rounded-none my-3 px-1 w-full data-[selected=true]:bg-gray-600; }
+  .search-item-link { @apply px-2 w-full cursor-pointer border-b border-gray-600 last:border-b-0 transition-colors flex items-center gap-3; }
 }

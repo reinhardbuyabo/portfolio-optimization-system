@@ -1,0 +1,42 @@
+{
+  "stock_code": "SCBK",
+  "training_date": "2025-11-19T11:52:10.006529",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.023290736600756645,
+  "best_val_mae": 0.05391748622059822,
+  "best_val_mape": 6.1147685050964355,
+  "test_mae": 27.838261195591503,
+  "test_mape": 12.043595769480216,
+  "test_sharpe": 247.93878283188215,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 135.25,
+    "max_price": 201.25,
+    "price_range": 66.0,
+    "log_min": 4.907124917726591,
+    "log_max": 5.304547916298673,
+    "log_range": 0.39742299857208163,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

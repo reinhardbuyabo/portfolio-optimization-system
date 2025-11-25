@@ -2,18 +2,25 @@ from config.core import settings
 from processing.data_manager import load_dataset, save_pipeline, save_preprocessor
 from processing.preprocessor import DataPreprocessor
 from pipeline.lstm_model import create_lstm_model
-from reproducibility import set_seeds, hash_dataframe, hash_files_and_timestamps, log_run_metadata
+from ml.reproducibility import set_seeds, hash_dataframe, hash_files_and_timestamps, log_run_metadata
 import numpy as np
 import datetime
 
 
-def run_training():
+def run_training(data=None, epochs=None, batch_size=None):
     """Train the model."""
     # Set seeds
     set_seeds(settings.SEED)
 
-    # Load data
-    data = load_dataset()
+    # Use provided data or load from default source
+    if data is None:
+        data = load_dataset()
+    
+    # Use provided epochs/batch_size or load from settings
+    if epochs is None:
+        epochs = settings.EPOCHS
+    if batch_size is None:
+        batch_size = settings.BATCH_SIZE
 
     # Hash individual data files and get timestamps
     file_hashes_and_timestamps = hash_files_and_timestamps(settings.DATA_DIR)
@@ -45,7 +52,7 @@ def run_training():
     # Create and train the LSTM model
     lstm_model = create_lstm_model(input_shape=(x_train.shape[1], 1))
     lstm_model.fit(
-        x_train, y_train, epochs=settings.EPOCHS, batch_size=settings.BATCH_SIZE
+        x_train, y_train, epochs=epochs, batch_size=batch_size
     )
 
     # Save the pipeline
@@ -59,8 +66,8 @@ def run_training():
         "run_timestamp": datetime.datetime.now().isoformat(),
         "model_version": settings.MODEL_VERSION,
         "seed": settings.SEED,
-        "epochs": settings.EPOCHS,
-        "batch_size": settings.BATCH_SIZE,
+        "epochs": epochs,
+        "batch_size": batch_size,
         "combined_dataset_hash": hash_dataframe(data),
         "individual_file_metadata": file_hashes_and_timestamps,
     }

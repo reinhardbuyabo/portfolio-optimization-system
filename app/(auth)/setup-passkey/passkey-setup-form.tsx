@@ -51,7 +51,7 @@ const PasskeySetupForm = () => {
       // Success!
       setSuccess(true);
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       }, 1500);
     } catch (err: unknown) {

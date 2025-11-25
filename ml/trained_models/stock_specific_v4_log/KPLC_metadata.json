@@ -1,0 +1,42 @@
+{
+  "stock_code": "KPLC",
+  "training_date": "2025-11-19T11:51:38.370932",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 41,
+  "early_stopped": true,
+  "best_val_loss": 0.22915689647197723,
+  "best_val_mae": 0.38355112075805664,
+  "best_val_mape": 33.679603576660156,
+  "test_mae": 2.0212319551195423,
+  "test_mape": 47.76965528365005,
+  "test_sharpe": 14.948032155372557,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 1.35,
+    "max_price": 1.86,
+    "price_range": 0.51,
+    "log_min": 0.30010459245033816,
+    "log_max": 0.62057648772511,
+    "log_range": 0.3204718952747718,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

@@ -1,4 +1,5 @@
 pandas
+tensorflow
 numpy
 scikit-learn
 statsmodels

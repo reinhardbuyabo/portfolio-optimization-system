@@ -34,8 +34,8 @@ const SetupPasskeyPage = async () => {
   });
 
   if (user?.authenticators && user.authenticators.length > 0) {
-    // User already has a passkey, redirect to home
-    redirect("/");
+    // User already has a passkey, redirect to dashboard
+    redirect("/dashboard");
   }
 
   return (

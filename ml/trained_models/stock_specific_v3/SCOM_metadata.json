@@ -1,0 +1,31 @@
+{
+  "stock_code": "SCOM",
+  "training_date": "2025-11-18T15:26:44.759834",
+  "model_version": "3.0_low_mae_mape",
+  "improvements": [
+    "Recent data only (2 years)",
+    "Shorter sequences (30 days)",
+    "Technical features",
+    "Combined MAE+MAPE loss",
+    "Extended training (100 epochs)"
+  ],
+  "n_samples": 2196,
+  "prediction_days": 30,
+  "n_features": 7,
+  "epochs_trained": 50,
+  "data_range": {
+    "min": 5.1,
+    "max": 44.95,
+    "mean": 22.394990892531872,
+    "std": 9.964173068813702
+  },
+  "validation_metrics": {
+    "mse": 17.713578557306896,
+    "mae": 3.947426253098708,
+    "rmse": 4.208750236983289,
+    "r2": -1.9113757774054676,
+    "mape": 9.847366459477936,
+    "negative_predictions": 0,
+    "bias": -3.947426253098708
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "stock_code": "BAMB",
+  "training_date": "2025-11-18T22:00:54.499701",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 63,
+  "early_stopped": true,
+  "best_val_loss": 0.07318337261676788,
+  "best_val_mae": 0.2008672058582306,
+  "best_val_mape": 15.095330238342285,
+  "test_mae": 7.95593425205775,
+  "test_mape": 11.91934528123741,
+  "test_sharpe": 18.908873834426824,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 22.5,
+    "max_price": 47.55,
+    "price_range": 25.049999999999997,
+    "log_min": 3.1135153092103742,
+    "log_max": 3.8617817889913995,
+    "log_range": 0.7482664797810252,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}
