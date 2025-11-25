@@ -88,8 +88,6 @@ The system was deployed as a Dockerized FastAPI service with endpoints for LSTM 
 
 ## 3. Results Summary
 
-> Note: walk-forward validation results below are from the LSTM models (walk_forward_validation_v4.json). ARIMA baseline numbers are from `arima_benchmark_top15.csv`. Where metric units differed (price MAE vs normalized errors) we prioritized **MAPE** and **directional accuracy** for apples-to-apples comparison.
-
 ### 3.1 Summary (Aggregate observations)
 
 * **Point error (MAE/MAPE):** ARIMA had lower MAE/MAPE on several of the top-15 when measured on the ARIMA CSV scale; however, MAPE and directional accuracy revealed a mixed picture.
