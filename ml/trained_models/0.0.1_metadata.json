@@ -1,0 +1,70 @@
+{
+    "run_timestamp": "2025-11-24T14:44:14.433635",
+    "model_version": "0.0.1",
+    "seed": 42,
+    "epochs": 1,
+    "batch_size": 8,
+    "combined_dataset_hash": "cd573d5e5553e0c3872d27870771ac842afa26df4ecd29b92006d763fdfe2329",
+    "individual_file_metadata": [
+        {
+            "file_name": "NSE_data_all_stocks_2013.csv",
+            "hash": "e175714b0f051907d63ab1006e3868b678ca0552d1b4f103943fbced461839a4",
+            "timestamp": 1762046749.457402
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2014.csv",
+            "hash": "bdddbace4cdb48ec360d40d4358175aaffa8c12f8199c002b602e71b3f069199",
+            "timestamp": 1762046749.4596977
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2015.csv",
+            "hash": "473678d04039a82307a249a0f0fa2e2ae18348ebf0e31b1ec20dfe9688313e61",
+            "timestamp": 1762046749.4620187
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2016.csv",
+            "hash": "2c759011268733d7a64d292fde0270b82225bb74998be258a0881851c2fbaa76",
+            "timestamp": 1762046749.4641712
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2017.csv",
+            "hash": "d5fb361e9d0171f93804098f345d2f5724a6ce6a294e8c17e1242303e84b68ab",
+            "timestamp": 1762046749.4662642
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2018.csv",
+            "hash": "8cba92afd0c3d5ee9f18ff5c7400e00fbf44b30c61114de75af748c8a16855c4",
+            "timestamp": 1762046749.4684381
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2019.csv",
+            "hash": "cad991a6aed128268f4b71d4000eec942206675431a02c25deca58a69ea51e2c",
+            "timestamp": 1762046749.4709854
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2020_to_jun30.csv",
+            "hash": "aabdf7dbd071526b8e9a1a789f8355c14ab06e66f712d094ebc7724be3c55a19",
+            "timestamp": 1762046749.4721546
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2021_upto_30apr2021.csv",
+            "hash": "1b0b9309d3fc57d9bc2b213055b97fe360d80231f62444375f9c2f905e06d1a3",
+            "timestamp": 1762046749.4729457
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2021_upto_31dec2021.csv",
+            "hash": "dff3bce9a0c915b5823f5b18d1b212c7ae2824f06971dd6721e2a9f77d4148ea",
+            "timestamp": 1762046749.475052
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2023.csv",
+            "hash": "14a3d132ac3130529adcb6a5eda3990ceb5096eb3c5955f5a59e3cd756dbfb6e",
+            "timestamp": 1762046749.477096
+        },
+        {
+            "file_name": "NSE_data_all_stocks_2024_jan_to_oct.csv",
+            "hash": "4a0d3cd76a33759cf77f4c2437e1e9074553326eacbea141f6fa2d34c823f4fd",
+            "timestamp": 1762046749.478955
+        }
+    ]
+}

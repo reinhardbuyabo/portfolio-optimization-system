@@ -1,0 +1,42 @@
+{
+  "stock_code": "EQTY",
+  "training_date": "2025-11-18T22:00:22.110482",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 100,
+  "early_stopped": false,
+  "best_val_loss": 0.01362455915659666,
+  "best_val_mae": 0.027275707572698593,
+  "best_val_mape": 4.666543483734131,
+  "test_mae": 2.200423540387819,
+  "test_mape": 4.694648647278672,
+  "test_sharpe": 29.015424148969256,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 33.65,
+    "max_price": 49.2,
+    "price_range": 15.550000000000004,
+    "log_min": 3.5160130560907366,
+    "log_max": 3.8958936234982624,
+    "log_range": 0.37988056740752585,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

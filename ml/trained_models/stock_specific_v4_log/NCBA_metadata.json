@@ -1,0 +1,42 @@
+{
+  "stock_code": "NCBA",
+  "training_date": "2025-11-19T11:51:59.501397",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.020397542044520378,
+  "best_val_mae": 0.014113877899944782,
+  "best_val_mape": 1.9161351919174194,
+  "test_mae": 3.492039380754732,
+  "test_mape": 7.935040879839265,
+  "test_sharpe": 72.91185582662548,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 30.7,
+    "max_price": 45.2,
+    "price_range": 14.500000000000004,
+    "log_min": 3.4242626545931514,
+    "log_max": 3.8110970868381857,
+    "log_range": 0.38683443224503433,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

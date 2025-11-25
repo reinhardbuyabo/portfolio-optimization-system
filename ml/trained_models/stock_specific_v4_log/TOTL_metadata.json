@@ -1,0 +1,42 @@
+{
+  "stock_code": "TOTL",
+  "training_date": "2025-11-19T11:52:20.709555",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.018018174916505814,
+  "best_val_mae": 0.030860407277941704,
+  "best_val_mape": 4.6521897315979,
+  "test_mae": 1.015422984531947,
+  "test_mape": 4.732683518949139,
+  "test_sharpe": 26.455992891639447,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 15.8,
+    "max_price": 24.0,
+    "price_range": 8.2,
+    "log_min": 2.760009940032921,
+    "log_max": 3.1780538303479458,
+    "log_range": 0.41804389031502476,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

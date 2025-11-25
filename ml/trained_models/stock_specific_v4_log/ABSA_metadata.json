@@ -1,0 +1,42 @@
+{
+  "stock_code": "ABSA",
+  "training_date": "2025-11-19T11:50:37.072579",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.02790065109729767,
+  "best_val_mae": 0.09993235766887665,
+  "best_val_mape": 10.359959602355957,
+  "test_mae": 1.266556385585242,
+  "test_mape": 8.357781697096843,
+  "test_sharpe": 120.17828565833739,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 10.1,
+    "max_price": 14.2,
+    "price_range": 4.1,
+    "log_min": 2.312535423847214,
+    "log_max": 2.653241964607215,
+    "log_range": 0.3407065407600012,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

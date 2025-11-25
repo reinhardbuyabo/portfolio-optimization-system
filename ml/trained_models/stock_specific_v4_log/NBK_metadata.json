@@ -1,0 +1,42 @@
+{
+  "stock_code": "NBK",
+  "training_date": "2025-11-19T11:51:48.969547",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.000524607312399894,
+  "best_val_mae": 0.0,
+  "best_val_mape": 0.0,
+  "test_mae": 1.1444091807533141e-07,
+  "test_mape": 2.7776921862944514e-06,
+  "test_sharpe": 0.0,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 4.12,
+    "max_price": 4.12,
+    "price_range": 0.0,
+    "log_min": 1.415853163361435,
+    "log_max": 1.415853163361435,
+    "log_range": 0.0,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}
