@@ -34,13 +34,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare data for all symbols
-    const result = prepareBatchMLData(symbols);
+    const result = await prepareBatchMLData(symbols);
 
     if (result.symbols.length === 0) {
       // Provide more detailed error information
       const errorDetails = result.errors || {};
       const errorMessages = Object.entries(errorDetails)
-        .map(([symbol, msg]) => `${symbol}: ${msg}`)
+        .map(([symbol, msg])_ => `${symbol}: ${msg}`)
         .join('; ');
       
       console.error('Data preparation failed for all symbols:', errorDetails);
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'No valid data available for any of the requested symbols',
-          details: errorMessages || 'Unable to load historical data from CSV file',
+          details: errorMessages || 'Unable to load historical data from database',
           errors: result.errors,
           symbols_requested: symbols,
         },

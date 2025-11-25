@@ -27,20 +27,25 @@ function parseCSV(csv: string) {
     return data;
 }
 
+function getLatestData(data: any[]) {
+    const latestData: { [key: string]: any } = {};
+    for (const row of data) {
+        const symbol = row.Symbol;
+        if (!latestData[symbol] || new Date(row.Date) > new Date(latestData[symbol].Date)) {
+            latestData[symbol] = row;
+        }
+    }
+    return Object.values(latestData);
+}
+
 export async function GET(request: NextRequest) {
     try {
         const fileContent = fs.readFileSync(csvFilePath, 'utf-8');
         const jsonData = parseCSV(fileContent);
 
-        const filteredData = jsonData.filter(row => {
-            return !isNaN(parseFloat(row.Open)) &&
-                   !isNaN(parseFloat(row.High)) &&
-                   !isNaN(parseFloat(row.Low)) &&
-                   !isNaN(parseFloat(row.Close)) &&
-                   !isNaN(parseInt(row.Volume));
-        });
+        const latestData = getLatestData(jsonData);
 
-        const timeSeries = filteredData.map(row => ({
+        const timeSeries = latestData.map(row => ({
             timestamp: new Date(row.Date).getTime(),
             symbol: row.Symbol,
             open: parseFloat(row.Open),
@@ -50,51 +55,25 @@ export async function GET(request: NextRequest) {
             volume: parseInt(row.Volume)
         }));
 
-        const summary = filteredData.reduce((acc: any[], row) => {
-            const existing = acc.find(item => item.symbol === row.Symbol);
-            if (existing) {
-                existing.volume += parseInt(row.Volume);
-                if (new Date(row.Date) > new Date(existing.last_updated)) {
-                    existing.last_updated = row.Date;
-                    existing.price = parseFloat(row.Close);
-                    existing.open = parseFloat(row.Open);
-                    existing.high = parseFloat(row.High);
-                    existing.low = parseFloat(row.Low);
-                    existing.change = existing.price - existing.open;
-                    existing.pct_change = (existing.change / existing.open);
-                }
-            } else {
-                const price = parseFloat(row.Close);
-                const open = parseFloat(row.Open);
-                const change = price - open;
-                const pct_change = (change / open);
-                acc.push({
-                    symbol: row.Symbol,
-                    price: price,
-                    change: change,
-                    pct_change: pct_change,
-                    open: open,
-                    high: parseFloat(row.High),
-                    low: parseFloat(row.Low),
-                    volume: parseInt(row.Volume),
-                    last_updated: row.Date,
-                });
-            }
-            return acc;
-        }, []);
+        const summary = latestData.map(row => {
+            const price = parseFloat(row.Close);
+            const open = parseFloat(row.Open);
+            const change = price - open;
+            const pct_change = (change / open);
+            return {
+                symbol: row.Symbol,
+                price: isNaN(price) ? 0 : price,
+                change: isNaN(change) ? 0 : change,
+                pct_change: isNaN(pct_change) ? 0 : pct_change,
+                open: isNaN(open) ? 0 : open,
+                high: isNaN(parseFloat(row.High)) ? 0 : parseFloat(row.High),
+                low: isNaN(parseFloat(row.Low)) ? 0 : parseFloat(row.Low),
+                volume: isNaN(parseInt(row.Volume)) ? 0 : parseInt(row.Volume),
+                last_updated: row.Date,
+            };
+        });
 
-        const sanitizedSummary = summary.map(item => ({
-            ...item,
-            price: isNaN(item.price) ? 0 : item.price,
-            change: isNaN(item.change) ? 0 : item.change,
-            pct_change: isNaN(item.pct_change) ? 0 : item.pct_change,
-            open: isNaN(item.open) ? 0 : item.open,
-            high: isNaN(item.high) ? 0 : item.high,
-            low: isNaN(item.low) ? 0 : item.low,
-            volume: isNaN(item.volume) ? 0 : item.volume,
-        }));
-
-        return NextResponse.json({ time_series: timeSeries, summary: sanitizedSummary });
+        return NextResponse.json({ time_series: timeSeries, summary: summary });
 
     } catch (error) {
         console.error("Error reading or parsing CSV file:", error);

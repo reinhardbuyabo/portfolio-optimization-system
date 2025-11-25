@@ -13,7 +13,7 @@ from ..models.schema import (
     GARCHForecastResult,
     ErrorResponse,
 )
-from pipeline.garch_model import get_garch_forecast
+from pipeline.garch_model import predict_next_day_volatility
 
 # THIS IS THE FIXED SEQUENCE LENGTH YOUR MODEL WAS TRAINED ON
 MODEL_INPUT_SEQUENCE_LENGTH = 60
@@ -73,7 +73,7 @@ def _compute_garch_forecast(log_returns: list) -> dict:
     start = time.perf_counter()
     
     series = pd.Series(log_returns)
-    forecasted_var_1d = get_garch_forecast(series_original=series)
+    forecasted_var_1d = predict_next_day_volatility(series_original=series)
     
     # Calculate other volatility metrics
     volatility_1d = math.sqrt(forecasted_var_1d)

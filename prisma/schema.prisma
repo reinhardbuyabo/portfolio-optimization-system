@@ -113,6 +113,7 @@ model Asset {
 model MarketData {
     id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     assetId        String   @db.Uuid
+    ticker         String
     date           DateTime
     open           Float
     high           Float
@@ -256,4 +257,29 @@ model PortfolioValuation {
     portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
 
     @@index([portfolioId, date])
+}
+
+model StockPredictionV4 {
+    id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbol              String    @db.VarChar(10)
+    predictionDate      DateTime  @default(now())
+    predictedPrice      Float
+    confidenceInterval  Json?
+    modelUsed           String
+    modelVersion        String
+    executionTime       Float
+    createdAt           DateTime  @default(now())
+
+    @@index([symbol, predictionDate])
+}
+
+model BatchPredictionV4 {
+    id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    batchId             String    @unique
+    symbols             String[]
+    totalCount          Int
+    successCount        Int
+    failureCount        Int
+    totalTime           Float
+    createdAt           DateTime  @default(now())
 }

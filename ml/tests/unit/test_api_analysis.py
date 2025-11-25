@@ -33,10 +33,10 @@ def mock_pipeline():
     mock_pipe.predict.return_value = np.array([[0.75]]) # Model's scaled prediction
     return mock_pipe
 
-@patch('ml.api.routes.analysis.get_garch_forecast') # Mock the GARCH function
-def test_analyze_stock_success(mock_get_garch_forecast, mock_preprocessor, mock_pipeline):
+@patch('ml.api.routes.analysis.predict_next_day_volatility') # Mock the GARCH function
+def test_analyze_stock_success(mock_predict_next_day_volatility, mock_preprocessor, mock_pipeline):
     # Setup mocks
-    mock_get_garch_forecast.return_value = 0.0001 # 1-day variance
+    mock_predict_next_day_volatility.return_value = 0.0001 # 1-day variance
     app.state.preprocessor = mock_preprocessor
     app.state.pipeline = mock_pipeline
 
@@ -50,7 +50,7 @@ def test_analyze_stock_success(mock_get_garch_forecast, mock_preprocessor, mock_
     
     # --- Send Request ---
     response = client.post(
-        "/api/v1/stock/analyze",
+        "/api/v1/analysis/stock/analyze",
         json={
             "symbol": "SCOM",
             "price_data": mock_price_data,
@@ -70,7 +70,7 @@ def test_analyze_stock_success(mock_get_garch_forecast, mock_preprocessor, mock_
     assert json_res["current_price"] == 145.0 # From mock_price_data[-1]
 
     # 2. Check GARCH was called correctly
-    mock_get_garch_forecast.assert_called_once()
+    mock_predict_next_day_volatility.assert_called_once()
     assert json_res["garch_result"]["forecasted_variance_1d"] == 0.0001
     assert json_res["garch_result"]["annualized_volatility"] == pytest.approx(math.sqrt(0.0001) * math.sqrt(252))
 
@@ -93,7 +93,7 @@ def test_analyze_stock_lstm_insufficient_data(mock_preprocessor, mock_pipeline):
     mock_log_returns = [0.01] * 100
     
     response = client.post(
-        "/api/v1/stock/analyze",
+        "/api/v1/analysis/stock/analyze",
         json={
             "symbol": "SCOM",
             "price_data": mock_price_data,
@@ -103,18 +103,18 @@ def test_analyze_stock_lstm_insufficient_data(mock_preprocessor, mock_pipeline):
     assert response.status_code == 400
     assert f"Require at least {MODEL_INPUT_SEQUENCE_LENGTH} price samples" in response.json()["detail"]
 
-@patch('ml.api.routes.analysis.get_garch_forecast')
-def test_analyze_stock_garch_insufficient_data(mock_get_garch_forecast, mock_preprocessor, mock_pipeline):
+@patch('ml.api.routes.analysis.predict_next_day_volatility')
+def test_analyze_stock_garch_insufficient_data(mock_predict_next_day_volatility, mock_preprocessor, mock_pipeline):
     app.state.preprocessor = mock_preprocessor
     app.state.pipeline = mock_pipeline
-    mock_get_garch_forecast.side_effect = ValueError("Insufficient data for GARCH forecast. Need at least 20 data points.")
+    mock_predict_next_day_volatility.side_effect = ValueError("Insufficient data for GARCH forecast. Need at least 20 data points.")
 
     mock_price_data = [{"Day Price": 120} for i in range(60)]
     # Only 10 days of log returns
     mock_log_returns = [0.01] * 10 
     
     response = client.post(
-        "/api/v1/stock/analyze",
+        "/api/v1/analysis/stock/analyze",
         json={
             "symbol": "SCOM",
             "price_data": mock_price_data,

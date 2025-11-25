@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { formatCurrency, formatPercent, formatNumber } from "@/lib/utils";
 import { calculateSharpeRatio } from "@/lib/financial-metrics";
 import { toast } from "sonner";
+import { mlClient, MLAPIError } from "@/lib/api/ml-client";
 import {
   TrendingUp,
   Activity,
@@ -27,7 +28,7 @@ import {
 } from "recharts";
 import { MetricCard } from "@/components/figma/MetricCard";
 import { BatchRunModal } from "@/components/figma/BatchRunModal";
-import type { CombinedPrediction } from "@/types/ml-api";
+import type { CombinedPrediction, StockPredictionV4Response, GARCHVolatilityResponse } from "@/types/ml-api";
 
 interface HistoricalDataPoint {
   date: string;
@@ -76,29 +77,21 @@ export default function StockAnalysisPage() {
     const fetchAvailableStocks = async () => {
       try {
         setLoadingStocks(true);
-        
-        // Fetch grouped by sector
         const response = await fetch('/api/stocks/available?grouped=true');
         if (!response.ok) {
           throw new Error('Failed to fetch stocks');
         }
-        
         const result = await response.json();
         setStocksBySector(result.data);
-        
-        // Flatten for the non-grouped array
         const allStocks: Stock[] = [];
         Object.values(result.data).forEach((sectorStocks: any) => {
           allStocks.push(...sectorStocks);
         });
         setAvailableStocks(allStocks);
-        
-        console.log(`Loaded ${allStocks.length} stocks from training data`);
       } catch (error) {
         console.error('Error fetching available stocks:', error);
-        // Fallback to a basic list if API fails
         setAvailableStocks([
-          { code: 'SCOM', name: 'Safaricom Plc', sector: 'Telecommunication and Technology' },
+          { code: 'SCOM', name: 'Safaricom Plc', sector: 'Telecommunication' },
           { code: 'EQTY', name: 'Equity Group Holdings Plc', sector: 'Banking' },
           { code: 'KCB', name: 'KCB Group Plc', sector: 'Banking' },
         ]);
@@ -117,8 +110,8 @@ export default function StockAnalysisPage() {
       setError(null);
       
       try {
-        const response = await fetch(`/api/stocks/historical?symbol=${selectedStock}&days=60`);
-        
+        const response = await fetch(`/api/stocks/historical?symbol=${selectedStock}&from=2024-09-01&to=2024-10-31`);
+        console.log(response);
         if (!response.ok) {
           throw new Error('Failed to fetch historical data');
         }
@@ -142,6 +135,103 @@ export default function StockAnalysisPage() {
     setHasResults(false);
   }, [selectedStock]);
 
+  const runLSTMPrediction = async (
+    stockCode: string,
+    horizon: PredictionHorizon,
+    historicalPrices: HistoricalDataPoint[]
+  ): Promise<CombinedPrediction> => {
+    // Validation: Check minimum data points
+    const minDataPoints = 60;
+    if (historicalPrices.length < minDataPoints) {
+      throw new MLAPIError(`Insufficient data for LSTM`, 400, {
+        detail: `Need at least ${minDataPoints} days of data, have ${historicalPrices.length}`
+      });
+    }
+
+    // Map horizon to V4 format (1d, 5d, 10d, 30d)
+    const horizonMap: Record<number, '1d' | '5d' | '10d' | '30d'> = {
+      1: '1d',
+      3: '5d', // Map 3 days to 5 days
+      7: '10d', // Map 7 days to 10 days
+      30: '30d',
+      90: '30d', // Map longer periods to 30d
+      180: '30d',
+      365: '30d',
+    };
+
+    const v4Horizon = horizonMap[HORIZON_DAYS[horizon]] || '10d';
+
+    toast.loading(`Running LSTM model...`, { id: 'prediction' });
+
+    const result = await mlClient.predictStockV4({
+      symbol: stockCode,
+      horizon: v4Horizon,
+      recent_prices: historicalPrices.slice(-60).map(p => p.price)
+    });
+
+    if (!result.prediction || !isFinite(result.prediction)) {
+      throw new MLAPIError("Invalid LSTM prediction", 500, {
+        detail: "The model returned invalid price prediction"
+      });
+    }
+
+    toast.success("LSTM prediction complete", {
+      id: 'prediction',
+      description: `Predicted price: ${formatCurrency(result.prediction)}`
+    });
+
+    return {
+      symbol: stockCode,
+      lstm: result,
+      garch: null,
+    };
+  };
+
+  const runGARCHPrediction = async (
+    stockCode: string,
+    forecastDays: number,
+    historicalData: HistoricalDataPoint[]
+  ): Promise<CombinedPrediction> => {
+    const minDataPoints = 30;
+    if (historicalData.length < minDataPoints) {
+      throw new Error(`Insufficient data for GARCH: need at least ${minDataPoints} days of data, have ${historicalData.length}`);
+    }
+
+    toast.loading(`Running GARCH model...`, { id: 'prediction' });
+
+    const response = await fetch("/api/ml/garch/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symbol: stockCode,
+        horizon: forecastDays,
+        data: historicalData.map(p => ({ "Day Price": p.price }))
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new MLAPIError(errorData.detail || "GARCH prediction failed", response.status, errorData);
+    }
+
+    const result = await response.json();
+
+    if (!result.volatility_annualized || !isFinite(result.volatility_annualized)) {
+      throw new Error("Invalid GARCH forecast: The model returned invalid volatility forecast");
+    }
+
+    toast.success("GARCH forecast complete", {
+      id: 'prediction',
+      description: `Volatility: ${formatPercent(result.volatility_annualized * 100)}`
+    });
+
+    return {
+      symbol: stockCode,
+      lstm: null,
+      garch: result,
+    };
+  };
+
   const handleRunModel = async () => {
     setIsRunning(true);
     setHasResults(false);
@@ -154,105 +244,19 @@ export default function StockAnalysisPage() {
         toast.error("No historical data available", {
           description: "Please select a stock with available price data"
         });
+        setIsRunning(false);
         return;
       }
 
-      // Validation: Check minimum data points
-      const minDataPoints = activeTab === 'garch' ? 30 : 60;
-      if (historicalData.length < minDataPoints) {
-        toast.error(`Insufficient data for ${activeTab.toUpperCase()}`, {
-          description: `Need at least ${minDataPoints} days of data, have ${historicalData.length}`
-        });
-        return;
-      }
+      let combinedResult: CombinedPrediction;
 
-      let endpoint = "";
-      let modelName = "";
-      let requestBody: any = {};
-      
       if (activeTab === 'lstm') {
-        // Use V4 API for LSTM predictions
-        endpoint = "/api/ml/v4/predict";
-        modelName = "LSTM";
-        
-        // Map horizon to V4 format (1d, 5d, 10d, 30d)
-        const horizonMap: Record<number, '1d' | '5d' | '10d' | '30d'> = {
-          1: '1d',
-          3: '5d',  // Map 3 days to 5 days
-          7: '10d', // Map 7 days to 10 days
-          30: '30d',
-          90: '30d',  // Map longer periods to 30d
-          180: '30d',
-          365: '30d',
-        };
-        
-        const v4Horizon = horizonMap[forecastDays] || '10d';
-        
-        requestBody = {
-          symbol: selectedStock,
-          horizon: v4Horizon,
-          recent_prices: historicalData.slice(-60).map(p => p.price)
-        };
+        combinedResult = await runLSTMPrediction(selectedStock, predictionHorizon, historicalData);
       } else if (activeTab === 'garch') {
-        endpoint = "/api/ml/garch/predict";
-        modelName = "GARCH";
-        requestBody = {
-          symbol: selectedStock,
-          horizon: forecastDays,
-          data: historicalData.map(p => ({ "Day Price": p.price }))
-        };
+        combinedResult = await runGARCHPrediction(selectedStock, forecastDays, historicalData);
       } else {
         throw new Error("Invalid model type selected");
       }
-
-      toast.loading(`Running ${modelName} model...`, { id: 'prediction' });
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.detail || "Prediction failed";
-        
-        toast.error(`${modelName} prediction failed`, {
-          id: 'prediction',
-          description: errorMessage
-        });
-        
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-      
-      // Validate result data
-      if (activeTab === 'lstm') {
-        if (!result.prediction || !isFinite(result.prediction)) {
-          toast.error("Invalid LSTM prediction", {
-            id: 'prediction',
-            description: "The model returned invalid price prediction"
-          });
-          throw new Error("Invalid LSTM prediction received");
-        }
-      } else if (activeTab === 'garch') {
-        if (!result.volatility_annualized || !isFinite(result.volatility_annualized)) {
-          toast.error("Invalid GARCH forecast", {
-            id: 'prediction',
-            description: "The model returned invalid volatility forecast"
-          });
-          throw new Error("Invalid GARCH forecast received");
-        }
-      }
-      
-      // The structure of the result will be different for single predictions
-      // We need to combine them into the CombinedPrediction format
-      const combinedResult: CombinedPrediction = {
-        symbol: selectedStock,
-        lstm: activeTab === 'lstm' ? result : null,
-        garch: activeTab === 'garch' ? result : null,
-      };
 
       // If we already have a result, merge them
       setPredictionResult(prev => {
@@ -260,38 +264,28 @@ export default function StockAnalysisPage() {
           return {
             ...prev,
             ...combinedResult
-          }
+          };
         }
         return combinedResult;
       });
 
       setHasResults(true);
-      
-      // Success toast
-      if (activeTab === 'lstm') {
-        toast.success("LSTM prediction complete", {
-          id: 'prediction',
-          description: `Predicted price: ${formatCurrency(result.prediction)}`
-        });
-      } else {
-        toast.success("GARCH forecast complete", {
-          id: 'prediction',
-          description: `Volatility: ${formatPercent(result.volatility_annualized * 100)}`
-        });
-      }
-      
+
     } catch (err: any) {
       console.error("Prediction failed:", err);
       const errorMessage = err.message || "Failed to run prediction";
       setError(errorMessage);
-      
-      // Only show toast if we haven't already shown one
-      if (!err.message?.includes("Invalid")) {
-        toast.error("Prediction error", {
-          id: 'prediction',
-          description: errorMessage
-        });
+
+      let toastDescription = errorMessage;
+      if (errorMessage.includes("zero variance")) {
+        toastDescription = "The historical price data has no variation. Please select a different stock or time period.";
       }
+
+      // The toast is already shown in the sub-functions, so we just update it here for specific cases
+      toast.error("Prediction Error", {
+        id: 'prediction', // This will update the existing 'loading' toast
+        description: toastDescription,
+      });
     } finally {
       setIsRunning(false);
     }
@@ -507,20 +501,8 @@ export default function StockAnalysisPage() {
             className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-chart-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loadingStocks ? (
-              <option>Loading stocks from training data...</option>
-            ) : Object.keys(stocksBySector).length > 0 ? (
-              // Group by sector for better organization
-              Object.entries(stocksBySector).map(([sector, stocks]) => (
-                <optgroup key={sector} label={`${sector} (${stocks.length})`}>
-                  {stocks.map((s) => (
-                    <option key={s.code} value={s.code}>
-                      {s.code} - {s.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))
+              <option key="loading">Loading stocks from training data...</option>
             ) : (
-              // Flat list fallback
               availableStocks.map((s) => (
                 <option key={s.code} value={s.code}>
                   {s.code} - {s.name}
@@ -936,7 +918,7 @@ export default function StockAnalysisPage() {
               title="Expected Return"
               value={
                 predictionResult.lstm && currentPrice
-                  ? `${predictionResult.lstm.prediction > currentPrice ? '+' : ''}${formatPercent(
+                  ? `${predictionResult.lstm.prediction > currentPrice ? '' : ''}${formatPercent(
                       ((predictionResult.lstm.prediction - currentPrice) / currentPrice) * 100
                     )}`
                   : "N/A"

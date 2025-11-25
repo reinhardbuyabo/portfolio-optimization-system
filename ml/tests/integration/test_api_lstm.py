@@ -1,11 +1,16 @@
 import time
 import numpy as np
 import pandas as pd
+import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
 from api.main import app
 
-client = TestClient(app)
+
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as c:
+        yield c
 
 
 def make_price_series(n=120, start=100.0):
@@ -17,7 +22,7 @@ def make_price_series(n=120, start=100.0):
     return df
 
 
-def test_lstm_single_prediction_metrics():
+def test_lstm_single_prediction_metrics(client):
     df = make_price_series(100)
     payload = {
         "symbol": "AAPL",
@@ -34,7 +39,7 @@ def test_lstm_single_prediction_metrics():
     assert isinstance(body["prediction"], (int, float))
 
 
-def test_lstm_batch_prediction_metrics():
+def test_lstm_batch_prediction_metrics(client):
     df = make_price_series(100)
     payload = {
         "stocks": [

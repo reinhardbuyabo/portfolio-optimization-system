@@ -78,26 +78,17 @@ function parseCSV(csv: string): CSVRow[] {
  */
 function loadAllHistoricalData(symbol: string): CSVRow[] {
   try {
+    const filePath = path.join(DATASETS_DIR, 'NSE_data_all_stocks_2024_jan_to_oct.csv');
     // Check if datasets directory exists
-    if (!fs.existsSync(DATASETS_DIR)) {
-      console.error(`Datasets directory not found: ${DATASETS_DIR}`);
+    if (!fs.existsSync(filePath)) {
+      console.error(`Datasets directory not found: ${filePath}`);
       return [];
     }
     
-    // Get all CSV files, excluding sector files
-    const allFiles = fs.readdirSync(DATASETS_DIR)
-      .filter(file => file.startsWith('NSE_data_all_stocks_') && file.endsWith('.csv'))
-      .filter(file => !file.toLowerCase().includes('sector'))
-      .map(file => path.join(DATASETS_DIR, file))
-      .sort();
-    
-    console.log(`Loading ${symbol} data from ${allFiles.length} CSV files`);
-    
     const allData: CSVRow[] = [];
     
-    for (const file of allFiles) {
       try {
-        const fileContent = fs.readFileSync(file, 'utf-8');
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
         const data = parseCSV(fileContent);
         
         // Filter for the specific symbol (handle both Code and CODE columns)
@@ -108,9 +99,8 @@ function loadAllHistoricalData(symbol: string): CSVRow[] {
         
         allData.push(...symbolData);
       } catch (error) {
-        console.warn(`Error reading ${path.basename(file)}:`, error);
+        console.warn(`Error reading ${path.basename(filePath)}:`, error);
       }
-    }
     
     // Sort by date (oldest first) - handle both Date and DATE columns
     allData.sort((a, b) => {
@@ -118,8 +108,6 @@ function loadAllHistoricalData(symbol: string): CSVRow[] {
       const dateB = new Date(b.Date || b.DATE || '');
       return dateA.getTime() - dateB.getTime();
     });
-    
-    console.log(`Loaded ${allData.length} total records for ${symbol} (2013-2024)`);
     
     return allData;
   } catch (error) {

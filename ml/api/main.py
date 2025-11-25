@@ -8,6 +8,7 @@ from processing.data_manager import load_pipeline, load_preprocessor
 from .routes.health import router as health_router
 from .routes.lstm import router as lstm_router
 from .routes.garch import router as garch_router
+from .routes.analysis import router as analysis_router
 from .routes.stock_predict_v4 import router as stock_v4_router
 from .services.model_registry import init_registry
 
@@ -77,6 +78,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router, prefix="/api/v1", tags=["health"]) 
     app.include_router(lstm_router, prefix="/api/v1/predict", tags=["lstm"]) 
     app.include_router(garch_router, prefix="/api/v1/predict", tags=["garch"])
+    app.include_router(analysis_router, prefix="/api/v1/analysis", tags=["analysis"])
     app.include_router(stock_v4_router, prefix="/api/v4", tags=["stock-predictions-v4"]) 
 
     return app

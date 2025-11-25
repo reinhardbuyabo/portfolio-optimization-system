@@ -1,15 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
+// --- Configuration ---
 const DATASETS_DIR = path.join(process.cwd(), 'ml', 'datasets');
 const STOCKS_CSV = path.join(DATASETS_DIR, 'NSE_data_all_stocks_2024_jan_to_oct.csv');
-const SECTORS_CSV = path.join(DATASETS_DIR, 'NSE_data_stock_market_sectors_2023_2024.csv');
 
-export interface StockInfo {
-  code: string;
-  name: string;
-  sector?: string;
-}
+// --- Utility Functions (Copied from lib/api/get-available-stocks.ts for self-containment) ---
 
 /**
  * Parse CSV line handling quoted fields
@@ -40,41 +36,8 @@ function parseCSVLine(line: string): string[] {
 }
 
 /**
- * Load sector information for stocks
+ * Extracts the latest data for each stock from an array of CSV lines.
  */
-function loadSectorData(): Map<string, { name: string; sector: string }> {
-  const sectorMap = new Map<string, { name: string; sector: string }>();
-  
-  try {
-    if (!fs.existsSync(SECTORS_CSV)) {
-      console.warn('Sectors CSV not found:', SECTORS_CSV);
-      return sectorMap;
-    }
-    
-    const content = fs.readFileSync(SECTORS_CSV, 'utf-8');
-    const lines = content.split('\n');
-    
-    // Skip header
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      const [sector, code, name] = parseCSVLine(line);
-      if (code && name && sector) {
-        sectorMap.set(code.toUpperCase(), { 
-          name: name.trim(), 
-          sector: sector.trim() 
-        });
-      }
-    }
-    
-  } catch (error) {
-    console.error('Error loading sector data:', error);
-  }
-  
-  return sectorMap;
-}
-
 function getLatestDataFromCsvLines(lines: string[]): any[] {
     const latestData: { [key: string]: any } = {};
     const headers = parseCSVLine(lines[0]);
@@ -116,7 +79,8 @@ function getLatestDataFromCsvLines(lines: string[]): any[] {
                     Date: dateStr,
                     Code: symbol,
                     'Day Price': currentPrice,
-                    Name: values[headers.findIndex(h => h.trim().toUpperCase() === 'NAME')]
+                    // Store other relevant fields if needed, or reconstruct full row
+                    // For now, just store what's essential for verification
                 };
             }
         } else {
@@ -126,64 +90,59 @@ function getLatestDataFromCsvLines(lines: string[]): any[] {
     return Object.values(latestData);
 }
 
-/**
- * Get all available stocks from the training data
- */
-export function getAvailableStocks(): StockInfo[] {
-  try {
-    if (!fs.existsSync(STOCKS_CSV)) {
-      console.error('Stocks CSV not found:', STOCKS_CSV);
-      return [];
-    }
-    
-    // Load sector information
-    const sectorMap = loadSectorData();
-    
-    // Read stocks CSV
-    const content = fs.readFileSync(STOCKS_CSV, 'utf-8');
-    const lines = content.split('\n');
-    
-    if (lines.length < 2) {
-      return [];
-    }
-    
-    const latestData = getLatestDataFromCsvLines(lines);
+// --- Main Verification Logic ---
+async function verifyData() {
+    console.log("--- Starting Data Verification Script ---");
 
-    // Convert to array and sort by code
-    const stocks = latestData.map(stock => {
-        const sectorInfo = sectorMap.get(stock.Code.toUpperCase());
-        return {
-            code: stock.Code,
-            name: sectorInfo?.name || stock.Name,
-            sector: sectorInfo?.sector,
+    try {
+        if (!fs.existsSync(STOCKS_CSV)) {
+            console.error(`Error: Stocks CSV not found at ${STOCKS_CSV}`);
+            process.exit(1);
         }
-    }).sort((a, b) => a.code.localeCompare(b.code));
-    
-    return stocks;
-  } catch (error) {
-    console.error('Error reading available stocks:', error);
-    return [];
-  }
-}
 
-/**
- * Get stocks grouped by sector
- */
-export function getStocksBySector(): Map<string, StockInfo[]> {
-  const stocks = getAvailableStocks();
-  const grouped = new Map<string, StockInfo[]>();
-  
-  stocks.forEach(stock => {
-    const sector = stock.sector || 'Other';
-    if (!grouped.has(sector)) {
-      grouped.set(sector, []);
+        const fileContent = fs.readFileSync(STOCKS_CSV, 'utf-8');
+        const lines = fileContent.split('\n');
+
+        if (lines.length < 2) {
+            console.error("Error: CSV file contains no data rows.");
+            process.exit(1);
+        }
+
+        const latestStockData = getLatestDataFromCsvLines(lines);
+
+        console.log(`\nFound ${latestStockData.length} unique stocks with their latest data.`);
+
+        const exampleSymbols = ["SCOM", "EQTY", "KCB", "SAFCOM"]; // SAFCOM to test missing
+        console.log("\n--- Latest Prices for Example Stocks ---");
+
+        for (const symbol of exampleSymbols) {
+            const stock = latestStockData.find(s => s.Code.toUpperCase() === symbol.toUpperCase());
+            if (stock) {
+                console.log(
+                    `  ${stock.Code}: Ksh ${stock['Day Price'].toFixed(2)} (as of ${stock.Date})`
+                );
+            } else {
+                console.log(`  ${symbol}: Not found in latest data.`);
+            }
+        }
+        
+        // Additional checks if needed
+        const scomData = latestStockData.find(s => s.Code.toUpperCase() === "SCOM");
+        if (scomData && scomData['Day Price'] === 16.75 && scomData.Date === "31-Oct-2024") {
+            console.log("\n✅ SCOM price and date match expected values from Oct 31, 2024.");
+        } else if (scomData) {
+            console.log(`\n❌ SCOM data found: Ksh ${scomData['Day Price']} (as of ${scomData.Date}). Expected: Ksh 16.75 (31-Oct-2024).`);
+        } else {
+            console.log("\n❌ SCOM data not found in latest processed data.");
+        }
+
+
+    } catch (error) {
+        console.error("An unexpected error occurred:", error);
+        process.exit(1);
     }
-    grouped.get(sector)!.push(stock);
-  });
-  
-  // Sort sectors alphabetically
-  return new Map([...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0])));
+
+    console.log("\n--- Data Verification Script Finished ---");
 }
 
-
-
+verifyData();
