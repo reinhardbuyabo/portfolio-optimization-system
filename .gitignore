@@ -106,3 +106,10 @@ dist/
 
 # DSStore
 /assets/.DS_Store
+
+/ml/trained_models/analysis
+/ml/trained_models/general_v4_log
+/ml/trained_models/stock_specific_v2
+/ml/trained_models/stock_specific_v3
+/ml/trained_models/stock_specific_v4_log
+/ml/datasets/

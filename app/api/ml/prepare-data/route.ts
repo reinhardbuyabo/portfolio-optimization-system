@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       // Provide more detailed error information
       const errorDetails = result.errors || {};
       const errorMessages = Object.entries(errorDetails)
-        .map(([symbol, msg])_ => `${symbol}: ${msg}`)
+        .map(([symbol, msg]) => `${symbol}: ${msg}`)
         .join('; ');
       
       console.error('Data preparation failed for all symbols:', errorDetails);

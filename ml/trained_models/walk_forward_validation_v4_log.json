@@ -1,7 +1,97 @@
 {
+  "ABSA": {
+    "stock_code": "ABSA",
+    "validation_date": "2025-11-25T14:17:01.239743",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.5285520406869743,
+        "mape": 3.7716469733248936,
+        "sharpe_ratio": 10.887840064070472,
+        "win_rate": 0.34210526315789475,
+        "direction_accuracy": 0.6052631578947368,
+        "actual_range": [
+          13.8,
+          14.3
+        ],
+        "pred_range": [
+          13.192578315734863,
+          13.578865051269531
+        ],
+        "actual_mean": 14.01025641025641,
+        "pred_mean": 13.481703758239746
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.553076242719378,
+        "mape": 3.942203000014852,
+        "sharpe_ratio": 12.786987535406878,
+        "win_rate": 0.29411764705882354,
+        "direction_accuracy": 0.6470588235294118,
+        "actual_range": [
+          13.8,
+          14.3
+        ],
+        "pred_range": [
+          13.192578315734863,
+          13.578865051269531
+        ],
+        "actual_mean": 14.024285714285716,
+        "pred_mean": 13.471208572387695
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.5862432225545251,
+        "mape": 4.17373948121352,
+        "sharpe_ratio": 16.355267349837945,
+        "win_rate": 0.27586206896551724,
+        "direction_accuracy": 0.6896551724137931,
+        "actual_range": [
+          13.9,
+          14.3
+        ],
+        "pred_range": [
+          13.192578315734863,
+          13.578865051269531
+        ],
+        "actual_mean": 14.040000000000003,
+        "pred_mean": 13.453754425048828
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.7231562042236332,
+        "mape": 5.150432862786297,
+        "sharpe_ratio": 59.289824291498086,
+        "win_rate": 0.3333333333333333,
+        "direction_accuracy": 0.6666666666666666,
+        "actual_range": [
+          14.0,
+          14.1
+        ],
+        "pred_range": [
+          13.192578315734863,
+          13.416162490844727
+        ],
+        "actual_mean": 14.040000000000001,
+        "pred_mean": 13.31684398651123
+      }
+    },
+    "summary": {
+      "avg_mae": 0.5977569275461276,
+      "avg_mape": 4.25950557933489,
+      "best_horizon": "1d"
+    }
+  },
   "BAMB": {
     "stock_code": "BAMB",
-    "validation_date": "2025-11-18T22:02:36.873427",
+    "validation_date": "2025-11-25T14:17:04.072100",
     "total_samples": 453,
     "train_samples": 353,
     "test_samples": 100,
@@ -89,9 +179,369 @@
       "best_horizon": "1d"
     }
   },
+  "BRIT": {
+    "stock_code": "BRIT",
+    "validation_date": "2025-11-25T14:17:06.986680",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.20621624041826303,
+        "mape": 3.510126774383314,
+        "sharpe_ratio": -0.5053242277015735,
+        "win_rate": 0.4473684210526316,
+        "direction_accuracy": 0.6578947368421053,
+        "actual_range": [
+          5.46,
+          6.38
+        ],
+        "pred_range": [
+          5.520230770111084,
+          5.643594741821289
+        ],
+        "actual_mean": 5.735897435897436,
+        "pred_mean": 5.575405597686768
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.1894858986990793,
+        "mape": 3.2427681401040576,
+        "sharpe_ratio": -0.14359008635306905,
+        "win_rate": 0.47058823529411764,
+        "direction_accuracy": 0.6470588235294118,
+        "actual_range": [
+          5.46,
+          6.38
+        ],
+        "pred_range": [
+          5.520230770111084,
+          5.643594741821289
+        ],
+        "actual_mean": 5.710857142857143,
+        "pred_mean": 5.577875137329102
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.1635083936055502,
+        "mape": 2.7834625801902,
+        "sharpe_ratio": -0.1237981610395691,
+        "win_rate": 0.6206896551724138,
+        "direction_accuracy": 0.6551724137931034,
+        "actual_range": [
+          5.46,
+          6.38
+        ],
+        "pred_range": [
+          5.520230770111084,
+          5.643594741821289
+        ],
+        "actual_mean": 5.716,
+        "pred_mean": 5.5829386711120605
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.14967535972595228,
+        "mape": 2.6040752610412294,
+        "sharpe_ratio": 8.588879094211176,
+        "win_rate": 0.4444444444444444,
+        "direction_accuracy": 0.5555555555555556,
+        "actual_range": [
+          5.52,
+          5.86
+        ],
+        "pred_range": [
+          5.527712345123291,
+          5.605830669403076
+        ],
+        "actual_mean": 5.6979999999999995,
+        "pred_mean": 5.582276344299316
+      }
+    },
+    "summary": {
+      "avg_mae": 0.17722147311221118,
+      "avg_mape": 3.0351081889297,
+      "best_horizon": "30d"
+    }
+  },
+  "CIC": {
+    "stock_code": "CIC",
+    "validation_date": "2025-11-25T14:17:09.848881",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.05406110029954185,
+        "mape": 2.4865448382552278,
+        "sharpe_ratio": -16.626813788982485,
+        "win_rate": 0.39473684210526316,
+        "direction_accuracy": 0.7368421052631579,
+        "actual_range": [
+          2.02,
+          2.25
+        ],
+        "pred_range": [
+          2.118096351623535,
+          2.1617438793182373
+        ],
+        "actual_mean": 2.1679487179487182,
+        "pred_mean": 2.134424924850464
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.05320422336033421,
+        "mape": 2.4481409374650367,
+        "sharpe_ratio": -15.313090987302354,
+        "win_rate": 0.5294117647058824,
+        "direction_accuracy": 0.7647058823529411,
+        "actual_range": [
+          2.02,
+          2.25
+        ],
+        "pred_range": [
+          2.1243276596069336,
+          2.1617438793182373
+        ],
+        "actual_mean": 2.1677142857142857,
+        "pred_mean": 2.1360394954681396
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.0551518115997315,
+        "mape": 2.544214531354871,
+        "sharpe_ratio": -14.072168382939815,
+        "win_rate": 0.4482758620689655,
+        "direction_accuracy": 0.7586206896551724,
+        "actual_range": [
+          2.02,
+          2.25
+        ],
+        "pred_range": [
+          2.1261866092681885,
+          2.1617438793182373
+        ],
+        "actual_mean": 2.164666666666667,
+        "pred_mean": 2.1370389461517334
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.045734487533569367,
+        "mape": 2.211065814671811,
+        "sharpe_ratio": -82.45034319260056,
+        "win_rate": 0.5555555555555556,
+        "direction_accuracy": 0.4444444444444444,
+        "actual_range": [
+          2.02,
+          2.18
+        ],
+        "pred_range": [
+          2.139753818511963,
+          2.1617438793182373
+        ],
+        "actual_mean": 2.1159999999999997,
+        "pred_mean": 2.1506075859069824
+      }
+    },
+    "summary": {
+      "avg_mae": 0.05203790569829424,
+      "avg_mape": 2.4224915304367367,
+      "best_horizon": "30d"
+    }
+  },
+  "COOP": {
+    "stock_code": "COOP",
+    "validation_date": "2025-11-25T14:17:12.681362",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.2479387674576196,
+        "mape": 1.9224148583210718,
+        "sharpe_ratio": -10.072840246569548,
+        "win_rate": 0.42105263157894735,
+        "direction_accuracy": 0.47368421052631576,
+        "actual_range": [
+          12.6,
+          13.65
+        ],
+        "pred_range": [
+          12.870257377624512,
+          13.350062370300293
+        ],
+        "actual_mean": 12.914102564102565,
+        "pred_mean": 13.05013370513916
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.2752230072021484,
+        "mape": 2.1493713829771037,
+        "sharpe_ratio": -9.736276059066826,
+        "win_rate": 0.35294117647058826,
+        "direction_accuracy": 0.47058823529411764,
+        "actual_range": [
+          12.6,
+          13.5
+        ],
+        "pred_range": [
+          12.888030052185059,
+          13.350062370300293
+        ],
+        "actual_mean": 12.858571428571429,
+        "pred_mean": 13.069416999816895
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.27946908950805666,
+        "mape": 2.1910136114437164,
+        "sharpe_ratio": -9.599200875996909,
+        "win_rate": 0.3793103448275862,
+        "direction_accuracy": 0.5172413793103449,
+        "actual_range": [
+          12.6,
+          13.5
+        ],
+        "pred_range": [
+          12.888030052185059,
+          13.350062370300293
+        ],
+        "actual_mean": 12.843333333333334,
+        "pred_mean": 13.095355987548828
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.5173923301696778,
+        "mape": 4.046416394779939,
+        "sharpe_ratio": 0.20863672320909543,
+        "win_rate": 0.4444444444444444,
+        "direction_accuracy": 0.3333333333333333,
+        "actual_range": [
+          12.7,
+          12.9
+        ],
+        "pred_range": [
+          13.248665809631348,
+          13.350062370300293
+        ],
+        "actual_mean": 12.795000000000002,
+        "pred_mean": 13.31239128112793
+      }
+    },
+    "summary": {
+      "avg_mae": 0.3300057985843756,
+      "avg_mape": 2.577304061880458,
+      "best_horizon": "1d"
+    }
+  },
+  "DTK": {
+    "stock_code": "DTK",
+    "validation_date": "2025-11-25T14:17:15.517863",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.5045297671587033,
+        "mape": 1.0970552146242583,
+        "sharpe_ratio": -17.111189627438705,
+        "win_rate": 0.3684210526315789,
+        "direction_accuracy": 0.3684210526315789,
+        "actual_range": [
+          44.65,
+          46.5
+        ],
+        "pred_range": [
+          46.59596252441406,
+          47.177616119384766
+        ],
+        "actual_mean": 46.20769230769231,
+        "pred_mean": 46.71221923828125
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.5169407653808586,
+        "mape": 1.1245064759878738,
+        "sharpe_ratio": -16.428828287455033,
+        "win_rate": 0.4117647058823529,
+        "direction_accuracy": 0.38235294117647056,
+        "actual_range": [
+          44.65,
+          46.5
+        ],
+        "pred_range": [
+          46.61350631713867,
+          47.177616119384766
+        ],
+        "actual_mean": 46.205714285714286,
+        "pred_mean": 46.722652435302734
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.525533879597981,
+        "mape": 1.1429006025818333,
+        "sharpe_ratio": -18.857743381312083,
+        "win_rate": 0.3103448275862069,
+        "direction_accuracy": 0.3793103448275862,
+        "actual_range": [
+          44.65,
+          46.5
+        ],
+        "pred_range": [
+          46.61350631713867,
+          47.177616119384766
+        ],
+        "actual_mean": 46.21166666666667,
+        "pred_mean": 46.737205505371094
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.929676361083984,
+        "mape": 2.031478615958434,
+        "sharpe_ratio": -112.9676560392697,
+        "win_rate": 0.5555555555555556,
+        "direction_accuracy": 0.2222222222222222,
+        "actual_range": [
+          44.65,
+          46.45
+        ],
+        "pred_range": [
+          46.70682144165039,
+          47.177616119384766
+        ],
+        "actual_mean": 46.005,
+        "pred_mean": 46.93467330932617
+      }
+    },
+    "summary": {
+      "avg_mae": 0.6191701933053817,
+      "avg_mape": 1.3489852272880998,
+      "best_horizon": "1d"
+    }
+  },
   "EABL": {
     "stock_code": "EABL",
-    "validation_date": "2025-11-18T22:02:39.869916",
+    "validation_date": "2025-11-25T14:17:18.356146",
     "total_samples": 453,
     "train_samples": 353,
     "test_samples": 100,
@@ -181,7 +631,7 @@
   },
   "EQTY": {
     "stock_code": "EQTY",
-    "validation_date": "2025-11-18T22:02:42.946792",
+    "validation_date": "2025-11-25T14:17:21.201434",
     "total_samples": 453,
     "train_samples": 353,
     "test_samples": 100,
@@ -269,9 +719,99 @@
       "best_horizon": "1d"
     }
   },
+  "JUB": {
+    "stock_code": "JUB",
+    "validation_date": "2025-11-25T14:17:24.031453",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 8.991193722455929,
+        "mape": 5.3594475232691385,
+        "sharpe_ratio": -41.6984845298041,
+        "win_rate": 0.39473684210526316,
+        "direction_accuracy": 0.3684210526315789,
+        "actual_range": [
+          160.0,
+          184.0
+        ],
+        "pred_range": [
+          178.50389099121094,
+          182.18519592285156
+        ],
+        "actual_mean": 171.71794871794873,
+        "pred_mean": 180.61370849609375
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 10.21017107282366,
+        "mape": 6.092704422814081,
+        "sharpe_ratio": -39.70875124496894,
+        "win_rate": 0.4411764705882353,
+        "direction_accuracy": 0.38235294117647056,
+        "actual_range": [
+          160.0,
+          181.25
+        ],
+        "pred_range": [
+          179.0434112548828,
+          182.18519592285156
+        ],
+        "actual_mean": 170.62142857142857,
+        "pred_mean": 180.8316192626953
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 12.045730590820312,
+        "mape": 7.200262851850823,
+        "sharpe_ratio": -37.07434922036252,
+        "win_rate": 0.41379310344827586,
+        "direction_accuracy": 0.3793103448275862,
+        "actual_range": [
+          160.0,
+          179.0
+        ],
+        "pred_range": [
+          179.58224487304688,
+          182.18519592285156
+        ],
+        "actual_mean": 169.04166666666666,
+        "pred_mean": 181.08738708496094
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 18.4114501953125,
+        "mape": 11.280689083087717,
+        "sharpe_ratio": -30.012815238052337,
+        "win_rate": 0.3333333333333333,
+        "direction_accuracy": 0.2222222222222222,
+        "actual_range": [
+          160.0,
+          168.75
+        ],
+        "pred_range": [
+          181.83189392089844,
+          182.18519592285156
+        ],
+        "actual_mean": 163.65,
+        "pred_mean": 182.06143188476562
+      }
+    },
+    "summary": {
+      "avg_mae": 12.4146363953531,
+      "avg_mape": 7.4832759702554394,
+      "best_horizon": "1d"
+    }
+  },
   "KCB": {
     "stock_code": "KCB",
-    "validation_date": "2025-11-18T22:02:45.910597",
+    "validation_date": "2025-11-25T14:17:26.891678",
     "total_samples": 453,
     "train_samples": 353,
     "test_samples": 100,
@@ -359,9 +899,459 @@
       "best_horizon": "10d"
     }
   },
+  "KEGN": {
+    "stock_code": "KEGN",
+    "validation_date": "2025-11-25T14:17:29.723718",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.05893020727695566,
+        "mape": 2.436714748274448,
+        "sharpe_ratio": 6.153593746540236,
+        "win_rate": 0.2894736842105263,
+        "direction_accuracy": 0.7894736842105263,
+        "actual_range": [
+          2.26,
+          2.5
+        ],
+        "pred_range": [
+          2.308651924133301,
+          2.363142967224121
+        ],
+        "actual_mean": 2.3956410256410257,
+        "pred_mean": 2.341853380203247
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.06194797815595358,
+        "mape": 2.560983229647879,
+        "sharpe_ratio": 11.248433804615532,
+        "win_rate": 0.2647058823529412,
+        "direction_accuracy": 0.7058823529411765,
+        "actual_range": [
+          2.26,
+          2.5
+        ],
+        "pred_range": [
+          2.308651924133301,
+          2.363142967224121
+        ],
+        "actual_mean": 2.3954285714285715,
+        "pred_mean": 2.34032940864563
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.06447287718454998,
+        "mape": 2.66647515163072,
+        "sharpe_ratio": 16.795660287694854,
+        "win_rate": 0.3448275862068966,
+        "direction_accuracy": 0.7241379310344828,
+        "actual_range": [
+          2.26,
+          2.5
+        ],
+        "pred_range": [
+          2.308651924133301,
+          2.362053394317627
+        ],
+        "actual_mean": 2.394,
+        "pred_mean": 2.3367226123809814
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.04787972259521482,
+        "mape": 2.036486480140741,
+        "sharpe_ratio": 107.06823234477186,
+        "win_rate": 0.3333333333333333,
+        "direction_accuracy": 0.6666666666666666,
+        "actual_range": [
+          2.26,
+          2.38
+        ],
+        "pred_range": [
+          2.308651924133301,
+          2.3335487842559814
+        ],
+        "actual_mean": 2.3549999999999995,
+        "pred_mean": 2.3218302726745605
+      }
+    },
+    "summary": {
+      "avg_mae": 0.05830769630316851,
+      "avg_mape": 2.425164902423447,
+      "best_horizon": "30d"
+    }
+  },
+  "KPLC": {
+    "stock_code": "KPLC",
+    "validation_date": "2025-11-25T14:17:32.564896",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 0.14926267721714118,
+        "mape": 7.999886830611798,
+        "sharpe_ratio": 10.887807893460792,
+        "win_rate": 0.39473684210526316,
+        "direction_accuracy": 0.5789473684210527,
+        "actual_range": [
+          1.62,
+          1.96
+        ],
+        "pred_range": [
+          1.621850609779358,
+          1.752142310142517
+        ],
+        "actual_mean": 1.8128205128205128,
+        "pred_mean": 1.6650381088256836
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 0.1658744211196899,
+        "mape": 8.82209002936829,
+        "sharpe_ratio": 10.283104512856427,
+        "win_rate": 0.35294117647058826,
+        "direction_accuracy": 0.5294117647058824,
+        "actual_range": [
+          1.62,
+          1.96
+        ],
+        "pred_range": [
+          1.621850609779358,
+          1.737445592880249
+        ],
+        "actual_mean": 1.8197142857142856,
+        "pred_mean": 1.6555767059326172
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 0.1960961365699768,
+        "mape": 10.340890180828332,
+        "sharpe_ratio": 8.014136013163146,
+        "win_rate": 0.3103448275862069,
+        "direction_accuracy": 0.5172413793103449,
+        "actual_range": [
+          1.62,
+          1.96
+        ],
+        "pred_range": [
+          1.621850609779358,
+          1.701622724533081
+        ],
+        "actual_mean": 1.8396666666666666,
+        "pred_mean": 1.6441093683242798
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.3036033563613891,
+        "mape": 15.620226926395736,
+        "sharpe_ratio": 15.094700803488005,
+        "win_rate": 0.3333333333333333,
+        "direction_accuracy": 0.7777777777777778,
+        "actual_range": [
+          1.91,
+          1.96
+        ],
+        "pred_range": [
+          1.621850609779358,
+          1.646681308746338
+        ],
+        "actual_mean": 1.943,
+        "pred_mean": 1.6393966674804688
+      }
+    },
+    "summary": {
+      "avg_mae": 0.20370914781704924,
+      "avg_mape": 10.69577349180104,
+      "best_horizon": "1d"
+    }
+  },
+  "NBK": {
+    "stock_code": "NBK",
+    "validation_date": "2025-11-25T14:17:35.404498",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 1.1444091807533141e-07,
+        "mape": 2.7776921862944506e-06,
+        "sharpe_ratio": -105614569.22705397,
+        "win_rate": 1.0,
+        "direction_accuracy": 1.0,
+        "actual_range": [
+          4.12,
+          4.12
+        ],
+        "pred_range": [
+          4.119999885559082,
+          4.119999885559082
+        ],
+        "actual_mean": 4.120000000000001,
+        "pred_mean": 4.119998931884766
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 1.1444091807533141e-07,
+        "mape": 2.7776921862944514e-06,
+        "sharpe_ratio": -211229154.3286158,
+        "win_rate": 1.0,
+        "direction_accuracy": 1.0,
+        "actual_range": [
+          4.12,
+          4.12
+        ],
+        "pred_range": [
+          4.119999885559082,
+          4.119999885559082
+        ],
+        "actual_mean": 4.12,
+        "pred_mean": 4.119999408721924
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 1.1444091807533141e-07,
+        "mape": 2.7776921862944506e-06,
+        "sharpe_ratio": -105614569.22705397,
+        "win_rate": 1.0,
+        "direction_accuracy": 1.0,
+        "actual_range": [
+          4.12,
+          4.12
+        ],
+        "pred_range": [
+          4.119999885559082,
+          4.119999885559082
+        ],
+        "actual_mean": 4.120000000000001,
+        "pred_mean": 4.12000036239624
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 1.1444091807533141e-07,
+        "mape": 2.7776921862944514e-06,
+        "sharpe_ratio": 0.0,
+        "win_rate": 1.0,
+        "direction_accuracy": 1.0,
+        "actual_range": [
+          4.12,
+          4.12
+        ],
+        "pred_range": [
+          4.119999885559082,
+          4.119999885559082
+        ],
+        "actual_mean": 4.119999999999999,
+        "pred_mean": 4.119999885559082
+      }
+    },
+    "summary": {
+      "avg_mae": 1.1444091807533141e-07,
+      "avg_mape": 2.777692186294451e-06,
+      "best_horizon": "1d"
+    }
+  },
+  "NCBA": {
+    "stock_code": "NCBA",
+    "validation_date": "2025-11-25T14:17:38.376822",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 1.119077594463642,
+        "mape": 2.7379322983360916,
+        "sharpe_ratio": -18.962101054337193,
+        "win_rate": 0.5,
+        "direction_accuracy": 0.5526315789473685,
+        "actual_range": [
+          38.55,
+          41.95
+        ],
+        "pred_range": [
+          39.624244689941406,
+          39.85454559326172
+        ],
+        "actual_mean": 40.74871794871794,
+        "pred_mean": 39.76186752319336
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 1.107307848249163,
+        "mape": 2.712764858107831,
+        "sharpe_ratio": -20.61233411043911,
+        "win_rate": 0.4117647058823529,
+        "direction_accuracy": 0.5588235294117647,
+        "actual_range": [
+          38.55,
+          41.35
+        ],
+        "pred_range": [
+          39.71674728393555,
+          39.85454559326172
+        ],
+        "actual_mean": 40.72142857142857,
+        "pred_mean": 39.77218246459961
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 1.091589279174805,
+        "mape": 2.67667525021949,
+        "sharpe_ratio": -18.232428101846708,
+        "win_rate": 0.4827586206896552,
+        "direction_accuracy": 0.5517241379310345,
+        "actual_range": [
+          38.55,
+          41.35
+        ],
+        "pred_range": [
+          39.73931121826172,
+          39.85454559326172
+        ],
+        "actual_mean": 40.67999999999999,
+        "pred_mean": 39.77946472167969
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 0.7856865692138676,
+        "mape": 1.965945656321935,
+        "sharpe_ratio": -11.233914451511314,
+        "win_rate": 0.7777777777777778,
+        "direction_accuracy": 0.6666666666666666,
+        "actual_range": [
+          38.55,
+          40.9
+        ],
+        "pred_range": [
+          39.79595184326172,
+          39.85454559326172
+        ],
+        "actual_mean": 40.010000000000005,
+        "pred_mean": 39.82939529418945
+      }
+    },
+    "summary": {
+      "avg_mae": 1.0259153227753692,
+      "avg_mape": 2.5233295157463367,
+      "best_horizon": "30d"
+    }
+  },
+  "SCBK": {
+    "stock_code": "SCBK",
+    "validation_date": "2025-11-25T14:17:41.581523",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 7.350080832456931,
+        "mape": 3.7935065428719397,
+        "sharpe_ratio": 3.482769860803771,
+        "win_rate": 0.5263157894736842,
+        "direction_accuracy": 0.5789473684210527,
+        "actual_range": [
+          187.5,
+          197.75
+        ],
+        "pred_range": [
+          181.27627563476562,
+          186.54624938964844
+        ],
+        "actual_mean": 192.75,
+        "pred_mean": 185.39990234375
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 6.936773681640625,
+        "mape": 3.5875591592380447,
+        "sharpe_ratio": 6.176347356430992,
+        "win_rate": 0.47058823529411764,
+        "direction_accuracy": 0.5882352941176471,
+        "actual_range": [
+          187.5,
+          196.25
+        ],
+        "pred_range": [
+          181.27627563476562,
+          186.54624938964844
+        ],
+        "actual_mean": 192.37857142857143,
+        "pred_mean": 185.44180297851562
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 6.644675699869792,
+        "mape": 3.44422540168028,
+        "sharpe_ratio": 10.48454173156369,
+        "win_rate": 0.4827586206896552,
+        "direction_accuracy": 0.5517241379310345,
+        "actual_range": [
+          187.5,
+          194.75
+        ],
+        "pred_range": [
+          181.27627563476562,
+          186.54624938964844
+        ],
+        "actual_mean": 191.99166666666667,
+        "pred_mean": 185.34698486328125
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 5.676666259765625,
+        "mape": 2.993837308421732,
+        "sharpe_ratio": 67.59072344218453,
+        "win_rate": 0.3333333333333333,
+        "direction_accuracy": 0.6666666666666666,
+        "actual_range": [
+          187.5,
+          190.5
+        ],
+        "pred_range": [
+          181.27627563476562,
+          185.63900756835938
+        ],
+        "actual_mean": 189.175,
+        "pred_mean": 183.49832153320312
+      }
+    },
+    "summary": {
+      "avg_mae": 6.6520491184332435,
+      "avg_mape": 3.454782103052999,
+      "best_horizon": "30d"
+    }
+  },
   "SCOM": {
     "stock_code": "SCOM",
-    "validation_date": "2025-11-18T22:02:48.879827",
+    "validation_date": "2025-11-25T14:17:44.835607",
     "total_samples": 453,
     "train_samples": 353,
     "test_samples": 100,
@@ -447,6 +1437,96 @@
       "avg_mae": 0.8847689435420891,
       "avg_mape": 5.480165180517541,
       "best_horizon": "10d"
+    }
+  },
+  "TOTL": {
+    "stock_code": "TOTL",
+    "validation_date": "2025-11-25T14:17:47.889962",
+    "total_samples": 453,
+    "train_samples": 353,
+    "test_samples": 100,
+    "results_by_horizon": {
+      "1d": {
+        "horizon_days": 1,
+        "n_predictions": 39,
+        "mae": 1.4285637782170222,
+        "mape": 6.902944422216849,
+        "sharpe_ratio": -4.0215816825193755,
+        "win_rate": 0.3684210526315789,
+        "direction_accuracy": 0.5526315789473685,
+        "actual_range": [
+          17.3,
+          23.75
+        ],
+        "pred_range": [
+          20.009349822998047,
+          21.930513381958008
+        ],
+        "actual_mean": 20.96025641025641,
+        "pred_mean": 21.072904586791992
+      },
+      "5d": {
+        "horizon_days": 5,
+        "n_predictions": 35,
+        "mae": 1.4796011134556362,
+        "mape": 7.2890476130736985,
+        "sharpe_ratio": -1.9302762027053533,
+        "win_rate": 0.35294117647058826,
+        "direction_accuracy": 0.5882352941176471,
+        "actual_range": [
+          17.3,
+          23.75
+        ],
+        "pred_range": [
+          20.48503303527832,
+          21.930513381958008
+        ],
+        "actual_mean": 20.685714285714283,
+        "pred_mean": 21.168724060058594
+      },
+      "10d": {
+        "horizon_days": 10,
+        "n_predictions": 30,
+        "mae": 1.4095085525512696,
+        "mape": 7.236683759513429,
+        "sharpe_ratio": -1.3765074129744403,
+        "win_rate": 0.3448275862068966,
+        "direction_accuracy": 0.5172413793103449,
+        "actual_range": [
+          17.3,
+          23.5
+        ],
+        "pred_range": [
+          20.583370208740234,
+          21.930513381958008
+        ],
+        "actual_mean": 20.20166666666666,
+        "pred_mean": 21.275243759155273
+      },
+      "30d": {
+        "horizon_days": 30,
+        "n_predictions": 10,
+        "mae": 2.1975943374633795,
+        "mape": 12.158986318331262,
+        "sharpe_ratio": 158.79017807386953,
+        "win_rate": 0.4444444444444444,
+        "direction_accuracy": 0.3333333333333333,
+        "actual_range": [
+          17.3,
+          20.9
+        ],
+        "pred_range": [
+          20.700607299804688,
+          21.70275115966797
+        ],
+        "actual_mean": 19.07,
+        "pred_mean": 21.221750259399414
+      }
+    },
+    "summary": {
+      "avg_mae": 1.6288169454218269,
+      "avg_mape": 8.39691552828381,
+      "best_horizon": "1d"
     }
   }
 }

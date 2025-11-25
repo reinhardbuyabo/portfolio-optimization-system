@@ -240,13 +240,15 @@ if all_results:
     print(f"✓ CSV saved to: {csv_file}")
     
     # Load LSTM results for comparison
-    lstm_file = settings.TRAINED_MODEL_DIR / 'walk_forward_validation_top15.csv'
+    lstm_file = settings.TRAINED_MODEL_DIR / 'walk_forward_validation_v4_log.csv'
     if lstm_file.exists():
         print(f"\n{'='*80}")
-        print("ARIMA vs LSTM COMPARISON")
+        print("ARIMA vs LSTM V4 COMPARISON")
         print(f"{'='*80}")
         
         lstm_df = pd.read_csv(lstm_file)
+        # Filter for 1d horizon for a fair comparison
+        lstm_df = lstm_df[lstm_df['horizon'] == '1d']
         
         comparison = []
         for stock in TOP_15_STOCKS:
@@ -255,9 +257,9 @@ if all_results:
             
             if len(arima_row) > 0 and len(lstm_row) > 0:
                 arima_sharpe = arima_row.iloc[0]['sharpe_ratio_mean']
-                lstm_sharpe = lstm_row.iloc[0]['sharpe_ratio_mean']
+                lstm_sharpe = lstm_row.iloc[0]['sharpe_ratio'] # Changed from sharpe_ratio_mean
                 arima_mae = arima_row.iloc[0]['mae_mean']
-                lstm_mae = lstm_row.iloc[0]['mae_mean']
+                lstm_mae = lstm_row.iloc[0]['mae'] # Changed from mae_mean
                 
                 winner_sharpe = 'ARIMA' if arima_sharpe > lstm_sharpe else 'LSTM'
                 winner_mae = 'ARIMA' if arima_mae < lstm_mae else 'LSTM'
