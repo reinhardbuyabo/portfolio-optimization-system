@@ -1,0 +1,13 @@
+fastapi
+python-dotenv
+pydantic
+pydantic-settings
+numpy
+pandas
+tensorflow
+scikit-learn
+arch
+joblib
+loguru
+uvicorn[standard]
+gunicorn

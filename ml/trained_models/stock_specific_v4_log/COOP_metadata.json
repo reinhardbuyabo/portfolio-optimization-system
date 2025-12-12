@@ -1,0 +1,42 @@
+{
+  "stock_code": "COOP",
+  "training_date": "2025-11-19T11:51:08.510878",
+  "prediction_days": 60,
+  "total_samples": 453,
+  "train_samples": 319,
+  "val_samples": 67,
+  "test_samples": 67,
+  "epochs_trained": 50,
+  "early_stopped": false,
+  "best_val_loss": 0.01651803031563759,
+  "best_val_mae": 0.018507590517401695,
+  "best_val_mape": 3.0786261558532715,
+  "test_mae": 0.46545636313302297,
+  "test_mape": 3.331971865496725,
+  "test_sharpe": 89.94021370369278,
+  "scaler_type": "LogPriceScaler",
+  "scaler_params": {
+    "fitted": true,
+    "min_price": 10.2,
+    "max_price": 15.05,
+    "price_range": 4.850000000000001,
+    "log_min": 2.322387720290225,
+    "log_max": 2.711377991194885,
+    "log_range": 0.38899027090465976,
+    "feature_range": [
+      0,
+      1
+    ]
+  },
+  "model_architecture": {
+    "lstm_units": [
+      50,
+      50
+    ],
+    "dense_units": [
+      25
+    ],
+    "dropout": 0.2,
+    "l2_reg": 0.01
+  }
+}

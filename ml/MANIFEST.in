@@ -1,0 +1,3 @@
+include ml/config.yml
+recursive-include ml/datasets *
+recursive-include ml/trained_models *

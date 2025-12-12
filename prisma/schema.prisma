@@ -1,0 +1,285 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+enum Role {
+    ADMIN
+    PORTFOLIO_MANAGER
+    INVESTOR
+    ANALYST
+}
+
+enum RiskTolerance {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+enum PortfolioStatus {
+    DRAFT
+    ACTIVE
+    ARCHIVED
+}
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String    @default("NO_NAME")
+  email         String    @unique @db.VarChar(255)
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(INVESTOR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  resetToken       String?   @db.VarChar(255)
+  resetTokenExpiry DateTime?
+
+  // 2FA fields
+  twoFactorCode       String?   @db.VarChar(10)
+  twoFactorExpiry     DateTime?
+  twoFactorVerifiedAt DateTime?
+
+  // WebAuthn challenge storage
+  webauthnChallenge String?   @db.VarChar(255)
+  challengeExpiry   DateTime?
+
+  investorProfile InvestorProfile?
+  portfolios      Portfolio[]
+  accounts        Account[]
+  sessions        Session[]
+  authenticators  Authenticator[]
+}
+
+model Account {
+    id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId             String   @db.Uuid
+    type               String
+    provider           String
+    providerAccountId  String
+    refresh_token      String?  @db.Text
+    access_token       String?  @db.Text
+    expires_at         Int?
+    token_type         String?
+    scope              String?
+    id_token           String?  @db.Text
+    session_state      String?
+    oauth_token_secret String?
+    oauth_token        String?
+    createdAt          DateTime @default(now())
+    updatedAt          DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id])
+
+    @@unique([provider, providerAccountId])
+}
+
+model Session {
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionToken String   @unique
+    userId       String   @db.Uuid
+    expires      DateTime
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model InvestorProfile {
+    id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId        String        @unique @db.Uuid
+    budget        Float
+    riskTolerance RiskTolerance
+    constraints   Json?
+    preferences   Json?
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model Asset {
+    id     String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    ticker String                @unique
+    name   String
+    sector String?
+    data   MarketData[]
+    allocs PortfolioAllocation[]
+}
+
+model MarketData {
+    id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    assetId        String   @db.Uuid
+    ticker         String
+    date           DateTime
+    open           Float
+    high           Float
+    low            Float
+    close          Float
+    volume         Int
+    sentimentScore Float?
+
+    asset Asset @relation(fields: [assetId], references: [id])
+}
+
+model Portfolio {
+    id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name          String
+    userId        String          @db.Uuid
+    riskTolerance RiskTolerance
+    targetReturn  Float
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    status        PortfolioStatus @default(DRAFT)
+    
+    // Computed metrics
+    value           Float    @default(0.0)
+    expectedReturn  Float    @default(0.0)
+    sharpeRatio     Float    @default(0.0)
+    volatility      Float    @default(0.0)
+    holdingsCount   Int      @default(0)
+
+    user        User                  @relation(fields: [userId], references: [id])
+    allocations PortfolioAllocation[]
+    results     OptimizationResult[]
+    simulations Simulation[]
+    valuations  PortfolioValuation[]
+
+    @@unique([userId, name])
+}
+
+model PortfolioAllocation {
+    id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId String @db.Uuid
+    assetId     String @db.Uuid
+    weight      Float
+    
+    // Computed metrics for individual holding
+    value           Float  @default(0.0)
+    expectedReturn  Float?
+    sharpeRatio     Float?
+
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+    asset     Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model OptimizationResult {
+    id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId        String   @db.Uuid
+    expectedReturn     Float
+    expectedVolatility Float
+    sharpeRatio        Float
+    sortinoRatio       Float
+    maxDrawdown        Float
+    createdAt          DateTime @default(now())
+
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+}
+
+model Simulation {
+    id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId        String   @db.Uuid
+    startDate          DateTime
+    endDate            DateTime
+    performanceMetrics Json?
+
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+}
+
+model Authenticator {
+    id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    credentialID         String   @unique
+    userId               String   @db.Uuid
+    providerAccountId    String
+    credentialPublicKey  String   @db.Text
+    counter              BigInt
+    credentialDeviceType String
+    credentialBackedUp   Boolean
+    transports           String?
+    createdAt            DateTime @default(now())
+    updatedAt            DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, credentialID])
+}
+
+model LSTMPrediction {
+    id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbol            String   @db.VarChar(10)
+    predictionDate    DateTime @default(now())
+    prediction        Float    // Actual price in KES
+    predictionScaled  Float    // Scaled value (0-1)
+    priceRangeMin     Float    // Minimum from input data
+    priceRangeMax     Float    // Maximum from input data
+    executionTime     Float    // Time taken in seconds
+    inputDataPoints   Int      // Number of days used (should be 60)
+    createdAt         DateTime @default(now())
+
+    @@index([symbol, predictionDate])
+}
+
+model GARCHVolatility {
+    id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbol                String   @db.VarChar(10)
+    predictionDate        DateTime @default(now())
+    forecastedVariance    Float    // Daily variance
+    volatilityAnnualized  Float    // Annualized volatility (percentage)
+    executionTime         Float    // Time taken in seconds
+    inputDataPoints       Int      // Number of days used for calculation
+    createdAt             DateTime @default(now())
+
+    @@index([symbol, predictionDate])
+}
+
+model PredictionBatch {
+    id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbols       String[] // Array of symbols in the batch
+    totalCount    Int      // Total number of stocks
+    successCount  Int      // Successfully processed
+    failureCount  Int      // Failed predictions
+    totalTime     Float    // Total execution time in seconds
+    createdAt     DateTime @default(now())
+}
+
+model PortfolioValuation {
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    portfolioId  String   @db.Uuid
+    date         DateTime @default(now())
+    totalValue   Float
+    totalReturn  Float
+    sharpeRatio  Float
+    volatility   Float
+
+    portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+    @@index([portfolioId, date])
+}
+
+model StockPredictionV4 {
+    id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    symbol              String    @db.VarChar(10)
+    predictionDate      DateTime  @default(now())
+    predictedPrice      Float
+    confidenceInterval  Json?
+    modelUsed           String
+    modelVersion        String
+    executionTime       Float
+    createdAt           DateTime  @default(now())
+
+    @@index([symbol, predictionDate])
+}
+
+model BatchPredictionV4 {
+    id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    batchId             String    @unique
+    symbols             String[]
+    totalCount          Int
+    successCount        Int
+    failureCount        Int
+    totalTime           Float
+    createdAt           DateTime  @default(now())
+}

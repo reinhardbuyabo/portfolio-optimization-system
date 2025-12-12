@@ -1,0 +1,115 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments and tox
+.tox/
+.venv/
+
+# TensorFlow / models
+ml/trained_models/*.tmp
+
+# Coverage and test artifacts
+htmlcov/
+.coverage
+
+# Logs
+logs/
+*.log
+
+# see https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.ds_store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/lib/generated/prisma
+
+CONVERSATION_SUMMARY.md
+AUTHENTICATION_STRATEGY.md
+GOOGLE_OAUTH_SETUP.md
+GOOGLE_OAUTH_IMPLEMENTATION.md
+GOOGLE_OAUTH_TROUBLESHOOTING.md
+TESTING_GOOGLE_OAUTH.md
+PUBLIC_ACCESS_GUIDE.md
+ROLE_BASED_ACCESS.md
+
+.idea
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+.DS_Store
+
+*.tox
+
++# Playwright
++playwright-auth.json
++test-results/
++playwright-report/
+
+# venv
+*.venv/
+*venv/
+
+# DSStore
+/assets/.DS_Store
+
+/ml/trained_models/analysis
+/ml/trained_models/general_v4_log
+/ml/trained_models/stock_specific_v2
+/ml/trained_models/stock_specific_v3
+/ml/trained_models/stock_specific_v4_log
+/ml/datasets/
